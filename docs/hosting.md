@@ -20,3 +20,23 @@
 
 Sources: https://iccup.com/commands.html · https://iccup-launcher.ru/kak-sozdat-igru.php ·
 https://iccup.com/community/thread/1644634.html · https://xgm.guru/p/irina/gamecreate
+
+# Always-open lobby + player stats (research, 2026-09-21)
+
+The always-open lobbies (e.g. LTDx20NG4.1.2bb) are most likely **IrInA autohost**, not iCCup bots (unconfirmed —
+check the host-slot name in such a lobby and try `!stats` / `!checkme`).
+
+Both LTDx20NG and our map use **W3MMD** (`InitGameCache("MMD.Dat")`), which bots read to record W/L/leaves.
+The iCCup launcher's own lobby stats (`LobbyRaceFmt` in iccup.ini) only apply to iCCup's Custom Ladder maps.
+
+## Options
+1. **IrInA autohost (recommended)** — register at irinabot.ru (VK/Discord login), upload map (≤250 MB, 1.26 OK),
+   create autohost on the website (`!autohost` removed). 299 RUB/month per slot. Reaches iCCup players; others
+   can join via IrInA Connector. XGM monthly vote gives free autohost months.
+   https://xgm.guru/p/irina/places · https://xgm.guru/p/irina/Otvety-na-chasto-zadavaemye-voprosy-m9s
+2. **Own bot (Aura / GHost++) on a VPS** — Aura supports PvPGN (`pvpgn = true`), ghostone bots have run on iCCup,
+   but no documented permission; iCCup bans for "advantage programs". Ask iCCup staff (Custom Discord) first.
+   iCCup gateways (from bngates.dat): 137.74.4.81 main, 57.129.6.91 DE, 51.83.177.124 PL, 178.218.215.155 RU3.
+3. **Official iCCup list** — request in "Custom апдейт" forum / Custom Discord; mainly popular maps; official list
+   already has "Legion TD Mega v3.41c" (code LTD). Only Custom Ladder maps get stats.
+   https://iccup.com/custom/ladder.html · https://iccup.com/community/thread/1650309.html
