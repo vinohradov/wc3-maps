@@ -54,8 +54,8 @@ def gold(u):
 lines = []
 b_units, upgrades, seen = [], [], set()
 for bi, b in enumerate(BUILDERS):
-    lines.append(f"set Reforged_BotBuilder[{bi}]='{b}'")
-    lines.append(f"set Reforged_BotBStart[{bi}]={len(b_units)}")
+    lines.append(f"call SaveInteger(Reforged_HT,8,{bi},'{b}')")
+    lines.append(f"call SaveInteger(Reforged_HT,9,{bi},{len(b_units)})")
     for u in [x for x in func.get(b, {}).get("Builds", "").split(",") if x]:
         if gold(u) <= 0:
             continue
@@ -68,28 +68,28 @@ for bi, b in enumerate(BUILDERS):
                     seen.add((cur, n))
                     upgrades.append((cur, n, gold(n), max(0, score(n) - score(cur))))
                     stack.append(n)
-    lines.append(f"set Reforged_BotBEnd[{bi}]={len(b_units) - 1}")
-lines.append(f"set Reforged_BotBuilderCount={len(BUILDERS)}")
+    lines.append(f"call SaveInteger(Reforged_HT,10,{bi},{len(b_units) - 1})")
+lines.append(f"call SaveInteger(Reforged_HT,21,0,{len(BUILDERS)})")
 for i, (u, c, s) in enumerate(b_units):
-    lines.append(f"set Reforged_BotUnit[{i}]='{u}'")
-    lines.append(f"set Reforged_BotCost[{i}]={c}")
-    lines.append(f"set Reforged_BotScore[{i}]={s}")
+    lines.append(f"call SaveInteger(Reforged_HT,11,{i},'{u}')")
+    lines.append(f"call SaveInteger(Reforged_HT,12,{i},{c})")
+    lines.append(f"call SaveInteger(Reforged_HT,13,{i},{s})")
 for i, (a, b, c, s) in enumerate(upgrades):
-    lines.append(f"set Reforged_BotUpFrom[{i}]='{a}'")
-    lines.append(f"set Reforged_BotUpTo[{i}]='{b}'")
-    lines.append(f"set Reforged_BotUpCost[{i}]={c}")
-    lines.append(f"set Reforged_BotUpGain[{i}]={s}")
-lines.append(f"set Reforged_BotUpCount={len(upgrades)}")
+    lines.append(f"call SaveInteger(Reforged_HT,14,{i},'{a}')")
+    lines.append(f"call SaveInteger(Reforged_HT,15,{i},'{b}')")
+    lines.append(f"call SaveInteger(Reforged_HT,16,{i},{c})")
+    lines.append(f"call SaveInteger(Reforged_HT,17,{i},{s})")
+lines.append(f"call SaveInteger(Reforged_HT,21,1,{len(upgrades)})")
 n = 0
 for shop in SHOPS:
     for u in [x for x in func.get(shop, {}).get("Sellunits", "").split(",") if x]:
         if int(f(bal.get(u, {}).get("stockMax"))) <= 0:
             continue
-        lines.append(f"set Reforged_BotSumShop[{n}]='{shop}'")
-        lines.append(f"set Reforged_BotSumUnit[{n}]='{u}'")
-        lines.append(f"set Reforged_BotSumCost[{n}]={int(f(bal[u].get('lumbercost')))}")
+        lines.append(f"call SaveInteger(Reforged_HT,18,{n},'{shop}')")
+        lines.append(f"call SaveInteger(Reforged_HT,19,{n},'{u}')")
+        lines.append(f"call SaveInteger(Reforged_HT,20,{n},{int(f(bal[u].get('lumbercost')))})")
         n += 1
-lines.append(f"set Reforged_BotSumCount={n}")
+lines.append(f"call SaveInteger(Reforged_HT,21,2,{n})")
 
 # JASS limits the number of operations per function call, so split the data into chunks
 chunks, out = [lines[i:i + 400] for i in range(0, len(lines), 400)], []

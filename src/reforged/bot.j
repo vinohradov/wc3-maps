@@ -4,6 +4,7 @@
 // and puts the rest into income (wisps, lumber research, summons).
 // Bots build and upgrade with real orders (so the map's gold anti-cheat stays happy) and send
 // summons by paying lumber and creating the unit, which the normal purchase trigger (EG) handles.
+// No new globals: state and data live in Reforged_HT (keys listed after endglobals).
 function Reforged_IsBotPlayer takes player p returns boolean
 return GetPlayerId(p)<8 and GetPlayerController(p)==MAP_CONTROL_COMPUTER and GetPlayerSlotState(p)==PLAYER_SLOT_STATE_PLAYING
 endfunction
@@ -21,9 +22,10 @@ return n
 endfunction
 function Reforged_BotBuilderIndex takes integer t returns integer
 local integer k=0
+local integer n=Reforged_HTI(21,0)
 loop
-exitwhen k>=Reforged_BotBuilderCount
-if Reforged_BotBuilder[k]==t then
+exitwhen k>=n
+if Reforged_HTI(8,k)==t then
 return k
 endif
 set k=k+1
@@ -33,24 +35,26 @@ endfunction
 function Reforged_BotFindUnit takes player p,integer t1,integer t2 returns unit
 local group g=CreateGroup()
 local unit u
-set Reforged_BotFound=null
+local unit found=null
 call GroupEnumUnitsOfPlayer(g,p,null)
 loop
 set u=FirstOfGroup(g)
 exitwhen u==null
-if Reforged_BotFound==null and GetWidgetLife(u)>0.405 and (GetUnitTypeId(u)==t1 or GetUnitTypeId(u)==t2) then
-set Reforged_BotFound=u
+if found==null and GetWidgetLife(u)>0.405 and (GetUnitTypeId(u)==t1 or GetUnitTypeId(u)==t2) then
+set found=u
 endif
 call GroupRemoveUnit(g,u)
 endloop
 call DestroyGroup(g)
 set g=null
-return Reforged_BotFound
+call SaveUnitHandle(Reforged_HT,22,0,found)
+set found=null
+return LoadUnitHandle(Reforged_HT,22,0)
 endfunction
 // army value the bot wants before investing in income (Insane only)
 function Reforged_BotTarget takes integer pid returns integer
 local integer n=L+1
-return R2I(Reforged_BotRatio[pid]*I2R(200+60*n+4*n*n))
+return R2I(Reforged_HTR(3,pid)*I2R(200+60*n+4*n*n))
 endfunction
 function Reforged_BotSpotFree takes real posX,real posY returns boolean
 local group g=CreateGroup()
@@ -75,10 +79,10 @@ return t=='e000' or t=='e002' or t=='e004' or t=='e005' or t=='e006' or t=='e007
 endfunction
 function Reforged_BotPick takes integer pid returns nothing
 local unit b=N[pid+1]
-if Reforged_BotDiff[pid]==2 and GetRandomInt(0,1)==0 then
+if Reforged_HTI(2,pid)==2 and GetRandomInt(0,1)==0 then
 call IssueImmediateOrderById(b,'u00T')
 else
-call IssueImmediateOrderById(b,Reforged_BotBuilder[GetRandomInt(0,Reforged_BotBuilderCount-1)])
+call IssueImmediateOrderById(b,Reforged_HTI(8,GetRandomInt(0,Reforged_HTI(21,0)-1)))
 endif
 set b=null
 endfunction
@@ -91,7 +95,7 @@ local integer r
 local real posX
 local real posY
 loop
-set s=Reforged_BotSlot[pid]
+set s=Reforged_HTI(4,pid)
 exitwhen s>=165
 set r=s/11
 set posX=GetPlayerStartLocationX(p)+I2R(ModuloInteger(s,11)-5)*128.
@@ -100,15 +104,15 @@ set posY=GetPlayerStartLocationY(p)+I2R((r+1)/2)*128.
 else
 set posY=GetPlayerStartLocationY(p)-I2R(r/2)*128.
 endif
-set Reforged_BotSlot[pid]=s+1
+call Reforged_HTSetI(4,pid,s+1)
 if Reforged_BotSpotFree(posX,posY) then
-if IssueBuildOrderById(b,Reforged_BotUnit[i],posX,posY) then
+if IssueBuildOrderById(b,Reforged_HTI(11,i),posX,posY) then
 set b=null
 return true
 endif
 // free spot but refused: probably a tech requirement -> skip this unit for the rest of the level
-set Reforged_BotBlocked[pid*600+i]=L+1
-set Reforged_BotSlot[pid]=s
+call Reforged_HTSetI(7,pid*600+i,L+1)
+call Reforged_HTSetI(4,pid,s)
 set b=null
 return false
 endif
@@ -121,19 +125,24 @@ function Reforged_BotChooseBuild takes integer pid,integer gold returns integer
 local player p=Player(pid)
 local integer k=Reforged_BotBuilderIndex(GetUnitTypeId(N[pid+1]))
 local integer i
+local integer last
 local integer pick=-1
 local integer best=0
 local integer n=0
 local integer v
+local integer cost
+call Reforged_HTSetI(21,4,0)
 if k<0 then
 return -1
 endif
-set i=Reforged_BotBStart[k]
+set i=Reforged_HTI(9,k)
+set last=Reforged_HTI(10,k)
 loop
-exitwhen i>Reforged_BotBEnd[k]
-if Reforged_BotCost[i]<=gold and Reforged_BotBlocked[pid*600+i]!=L+1 and GetPlayerTechMaxAllowed(p,Reforged_BotUnit[i])!=0 then
-if Reforged_BotDiff[pid]==2 then
-set v=Reforged_BotScore[i]*1000/Reforged_BotCost[i]
+exitwhen i>last
+set cost=Reforged_HTI(12,i)
+if cost<=gold and Reforged_HTI(7,pid*600+i)!=L+1 and GetPlayerTechMaxAllowed(p,Reforged_HTI(11,i))!=0 then
+if Reforged_HTI(2,pid)==2 then
+set v=Reforged_HTI(13,i)*1000/cost
 if v>best then
 set best=v
 set pick=i
@@ -147,21 +156,23 @@ endif
 endif
 set i=i+1
 endloop
-set Reforged_BotPickValue=best
+call Reforged_HTSetI(21,4,best)
 return pick
 endfunction
-// best (Insane) or random affordable upgrade among the bot's towers; sets Reforged_BotUpUnit / returns index or -1
+// best (Insane) or random affordable upgrade among the bot's towers; stores the tower in HT(22,1); index or -1
 function Reforged_BotChooseUpgrade takes integer pid,integer gold returns integer
 local player p=Player(pid)
 local group g=CreateGroup()
 local unit u
+local unit chosen=null
 local integer j
 local integer t
 local integer pick=-1
 local integer best=0
 local integer n=0
 local integer v
-set Reforged_BotUpUnit=null
+local integer cnt=Reforged_HTI(21,1)
+local integer cost
 call GroupEnumUnitsOfPlayer(g,p,null)
 loop
 set u=FirstOfGroup(g)
@@ -170,20 +181,23 @@ if GetWidgetLife(u)>0.405 and IsUnitType(u,UNIT_TYPE_STRUCTURE) and not IsUnitIn
 set t=GetUnitTypeId(u)
 set j=0
 loop
-exitwhen j>=Reforged_BotUpCount
-if Reforged_BotUpFrom[j]==t and Reforged_BotUpCost[j]<=gold and GetPlayerTechMaxAllowed(p,Reforged_BotUpTo[j])!=0 then
-if Reforged_BotDiff[pid]==2 then
-set v=Reforged_BotUpGain[j]*1000/Reforged_BotUpCost[j]
+exitwhen j>=cnt
+if Reforged_HTI(14,j)==t then
+set cost=Reforged_HTI(16,j)
+if cost<=gold and GetPlayerTechMaxAllowed(p,Reforged_HTI(15,j))!=0 then
+if Reforged_HTI(2,pid)==2 then
+set v=Reforged_HTI(17,j)*1000/cost
 if v>best then
 set best=v
 set pick=j
-set Reforged_BotUpUnit=u
+set chosen=u
 endif
 else
 set n=n+1
 if GetRandomInt(1,n)==1 then
 set pick=j
-set Reforged_BotUpUnit=u
+set chosen=u
+endif
 endif
 endif
 endif
@@ -194,22 +208,25 @@ call GroupRemoveUnit(g,u)
 endloop
 call DestroyGroup(g)
 set g=null
-set Reforged_BotPickValue=best
+call SaveUnitHandle(Reforged_HT,22,1,chosen)
+set chosen=null
+call Reforged_HTSetI(21,4,best)
 return pick
 endfunction
 // spend gold on army once; returns true if an order was given
 function Reforged_BotArmy takes integer pid,integer gold,boolean allowUpgrades returns boolean
 local integer buildIdx=Reforged_BotChooseBuild(pid,gold)
-local integer buildVal=Reforged_BotPickValue
+local integer buildVal=Reforged_HTI(21,4)
 local integer upIdx=-1
-local integer uv2=0
+local integer upVal=0
 local boolean idle=GetUnitCurrentOrder(N[pid+1])==0
+local integer d=Reforged_HTI(2,pid)
 if allowUpgrades then
 set upIdx=Reforged_BotChooseUpgrade(pid,gold)
-set uv2=Reforged_BotPickValue
+set upVal=Reforged_HTI(21,4)
 endif
-if upIdx>=0 and (buildIdx<0 or not idle or (Reforged_BotDiff[pid]==2 and uv2>=buildVal) or (Reforged_BotDiff[pid]!=2 and GetRandomInt(0,1)==0)) then
-return IssueImmediateOrderById(Reforged_BotUpUnit,Reforged_BotUpTo[upIdx])
+if upIdx>=0 and (buildIdx<0 or not idle or (d==2 and upVal>=buildVal) or (d!=2 and GetRandomInt(0,1)==0)) then
+return IssueImmediateOrderById(LoadUnitHandle(Reforged_HT,22,1),Reforged_HTI(15,upIdx))
 endif
 if buildIdx>=0 and idle then
 return Reforged_BotTryBuild(pid,buildIdx)
@@ -243,16 +260,19 @@ local unit shop=Reforged_BotFindUnit(p,'h05C','h9B0')
 local integer st=0
 local integer at=GetUnitTypeId(Vr[pid+1])
 local integer i=0
+local integer cnt=Reforged_HTI(21,2)
 local integer pick=-1
 local integer n=0
+local integer sh
 if shop!=null then
 set st=GetUnitTypeId(shop)
 endif
 loop
-exitwhen i>=Reforged_BotSumCount
-if (Reforged_BotSumShop[i]==st or Reforged_BotSumShop[i]==at) and Reforged_BotSumCost[i]<=lumber then
-if Reforged_BotDiff[pid]==2 then
-if pick<0 or Reforged_BotSumCost[i]>Reforged_BotSumCost[pick] then
+exitwhen i>=cnt
+set sh=Reforged_HTI(18,i)
+if (sh==st or sh==at) and Reforged_HTI(20,i)<=lumber then
+if Reforged_HTI(2,pid)==2 then
+if pick<0 or Reforged_HTI(20,i)>Reforged_HTI(20,pick) then
 set pick=i
 endif
 else
@@ -265,8 +285,8 @@ endif
 set i=i+1
 endloop
 if pick>=0 and shop!=null then
-call AdjustPlayerStateBJ(-Reforged_BotSumCost[pick],p,PLAYER_STATE_RESOURCE_LUMBER)
-call CreateUnit(p,Reforged_BotSumUnit[pick],GetUnitX(shop),GetUnitY(shop)-200.,270.)
+call AdjustPlayerStateBJ(-Reforged_HTI(20,pick),p,PLAYER_STATE_RESOURCE_LUMBER)
+call CreateUnit(p,Reforged_HTI(19,pick),GetUnitX(shop),GetUnitY(shop)-200.,270.)
 endif
 set shop=null
 endfunction
@@ -274,7 +294,7 @@ endfunction
 function Reforged_BotThink takes integer pid returns nothing
 local player p=Player(pid)
 local integer gold=GetPlayerState(p,PLAYER_STATE_RESOURCE_GOLD)
-local integer d=Reforged_BotDiff[pid]
+local integer d=Reforged_HTI(2,pid)
 if N[pid+1]==null then
 return
 endif
@@ -300,14 +320,14 @@ if lr then
 return
 endif
 // new build phase: Insane adapts its target to last wave's leaks
-if Reforged_BotLastLevel[pid]!=L then
-set Reforged_BotLastLevel[pid]=L
-if co[pid+1]>Reforged_BotLastLeak[pid] then
-set Reforged_BotRatio[pid]=RMinBJ(Reforged_BotRatio[pid]*1.3,4.)
+if Reforged_HTI(6,pid)!=L then
+call Reforged_HTSetI(6,pid,L)
+if co[pid+1]>Reforged_HTI(5,pid) then
+call Reforged_HTSetR(3,pid,RMinBJ(Reforged_HTR(3,pid)*1.3,4.))
 elseif L>0 then
-set Reforged_BotRatio[pid]=RMaxBJ(Reforged_BotRatio[pid]*0.93,0.6)
+call Reforged_HTSetR(3,pid,RMaxBJ(Reforged_HTR(3,pid)*0.93,0.6))
 endif
-set Reforged_BotLastLeak[pid]=co[pid+1]
+call Reforged_HTSetI(5,pid,co[pid+1])
 endif
 if d==0 then
 if GetRandomInt(0,1)==0 then
@@ -329,7 +349,7 @@ function Reforged_BotTick takes nothing returns nothing
 local integer pid=0
 loop
 exitwhen pid>7
-if Reforged_IsBot[pid] and GetPlayerSlotState(Player(pid))==PLAYER_SLOT_STATE_PLAYING then
+if Reforged_IsBot(pid) and GetPlayerSlotState(Player(pid))==PLAYER_SLOT_STATE_PLAYING then
 call Reforged_BotThink(pid)
 endif
 set pid=pid+1
@@ -343,22 +363,22 @@ call Reforged_BotData()
 loop
 exitwhen pid>7
 if Reforged_IsBotPlayer(Player(pid)) then
-set Reforged_IsBot[pid]=true
-set Reforged_HasBots=true
+call Reforged_HTSetI(1,pid,1)
+call Reforged_HTSetI(21,3,1)
 set a=GetAIDifficulty(Player(pid))
 if a==AI_DIFFICULTY_INSANE then
-set Reforged_BotDiff[pid]=2
+call Reforged_HTSetI(2,pid,2)
 elseif a==AI_DIFFICULTY_NORMAL then
-set Reforged_BotDiff[pid]=1
+call Reforged_HTSetI(2,pid,1)
 else
-set Reforged_BotDiff[pid]=0
+call Reforged_HTSetI(2,pid,0)
 endif
-set Reforged_BotRatio[pid]=1.
-set Reforged_BotLastLevel[pid]=-1
+call Reforged_HTSetR(3,pid,1.)
+call Reforged_HTSetI(6,pid,-1)
 endif
 set pid=pid+1
 endloop
-if Reforged_HasBots then
+if Reforged_HasBots() then
 set t=CreateTrigger()
 call TriggerRegisterTimerEvent(t,1.,true)
 call TriggerAddAction(t,function Reforged_BotTick)
