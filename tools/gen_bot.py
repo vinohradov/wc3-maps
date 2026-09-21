@@ -47,6 +47,25 @@ def score(u):
     return int((f(b.get("HP")) * dps) ** 0.5)
 
 
+ATK = {"normal": 0, "pierce": 1, "siege": 2, "magic": 3, "chaos": 4}
+DEF = {"small": 0, "medium": 1, "large": 2, "fort": 3, "normal": 4, "hero": 5, "divine": 6, "none": 7}
+# the map's war3mapMisc DamageBonus table, percent, rows = ATK order, columns = DEF order
+DAMAGE = [[90, 120, 90, 80, 80, 90, 100, 100], [130, 90, 80, 70, 70, 90, 100, 100],
+          [90, 90, 90, 125, 125, 90, 100, 100], [110, 80, 120, 70, 70, 90, 100, 100], [100] * 8]
+
+
+def atk(u):
+    return ATK.get((wp.get(fighter.get(u, u), {}).get("atkType1") or "").lower(), 4)
+
+
+def arm(u):
+    return DEF.get((bal.get(fighter.get(u, u), {}).get("defType") or "").lower(), 7)
+
+
+def rng(u):
+    return int(f(wp.get(fighter.get(u, u), {}).get("rangeN1")))
+
+
 def gold(u):
     return int(f(bal.get(u, {}).get("goldcost")))
 
@@ -74,11 +93,19 @@ for i, (u, c, s) in enumerate(b_units):
     lines.append(f"call SaveInteger(Reforged_HT,11,{i},'{u}')")
     lines.append(f"call SaveInteger(Reforged_HT,12,{i},{c})")
     lines.append(f"call SaveInteger(Reforged_HT,13,{i},{s})")
+    lines.append(f"call SaveInteger(Reforged_HT,26,{i},{rng(u)})")
+    lines.append(f"call SaveInteger(Reforged_HT,33,{i},{atk(u)})")
+    lines.append(f"call SaveInteger(Reforged_HT,34,{i},{arm(u)})")
+    lines.append(f"call SaveInteger(Reforged_HT,38,'{u}',{arm(u) + 1})")
 for i, (a, b, c, s) in enumerate(upgrades):
     lines.append(f"call SaveInteger(Reforged_HT,14,{i},'{a}')")
     lines.append(f"call SaveInteger(Reforged_HT,15,{i},'{b}')")
     lines.append(f"call SaveInteger(Reforged_HT,16,{i},{c})")
     lines.append(f"call SaveInteger(Reforged_HT,17,{i},{s})")
+    lines.append(f"call SaveInteger(Reforged_HT,29,{i},{1 if rng(b) >= 200 else 0})")
+    lines.append(f"call SaveInteger(Reforged_HT,35,{i},{atk(b)})")
+    lines.append(f"call SaveInteger(Reforged_HT,36,{i},{arm(b)})")
+    lines.append(f"call SaveInteger(Reforged_HT,38,'{b}',{arm(b) + 1})")
 lines.append(f"call SaveInteger(Reforged_HT,21,1,{len(upgrades)})")
 n = 0
 for shop in SHOPS:
@@ -88,8 +115,17 @@ for shop in SHOPS:
         lines.append(f"call SaveInteger(Reforged_HT,18,{n},'{shop}')")
         lines.append(f"call SaveInteger(Reforged_HT,19,{n},'{u}')")
         lines.append(f"call SaveInteger(Reforged_HT,20,{n},{int(f(bal[u].get('lumbercost')))})")
+        lines.append(f"call SaveInteger(Reforged_HT,39,{n},{atk(u)})")
         n += 1
 lines.append(f"call SaveInteger(Reforged_HT,21,2,{n})")
+
+for a, row in enumerate(DAMAGE):
+    for d, pct in enumerate(row):
+        lines.append(f"call SaveInteger(Reforged_HT,30,{a * 8 + d},{pct})")
+waves = re.findall(r"set F\[K\]='(\w{4})'", script)[:30]
+for lvl, u in enumerate(waves, 1):
+    lines.append(f"call SaveInteger(Reforged_HT,31,{lvl},{atk(u)})")
+    lines.append(f"call SaveInteger(Reforged_HT,32,{lvl},{arm(u)})")
 
 # JASS limits the number of operations per function call, so split the data into chunks
 chunks, out = [lines[i:i + 400] for i in range(0, len(lines), 400)], []

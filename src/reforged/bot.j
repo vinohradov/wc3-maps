@@ -86,44 +86,84 @@ call IssueImmediateOrderById(b,Reforged_HTI(8,GetRandomInt(0,Reforged_HTI(21,0)-
 endif
 set b=null
 endfunction
-// ---- building on a grid around the lane centre (11 columns x 15 rows, 128 apart)
+// ---- matchups: damage table HT(30, atk*8+def) in percent; next wave's types HT(31/32, level)
+function Reforged_BotMatchup takes integer unitAtk,integer unitDef returns integer
+local integer lvl=L+1
+local integer dealt
+local integer taken
+if lvl>30 then
+set lvl=30
+endif
+set dealt=Reforged_HTI(30,unitAtk*8+Reforged_HTI(32,lvl))
+set taken=Reforged_HTI(30,Reforged_HTI(31,lvl)*8+unitDef)
+return dealt*(200-taken)/100
+endfunction
+// ---- placement: melee rows in front (towards the creep spawn), ranged rows behind them by about their range.
+// Even player ids have creeps coming from the north, odd ids from the south. 13 rows x 11 columns, 128 apart.
 function Reforged_BotTryBuild takes integer pid,integer i returns boolean
 local unit b=N[pid+1]
 local player p=Player(pid)
-local integer s
-local integer r
+local integer range=Reforged_HTI(26,i)
+local integer row=0
+local integer col
+local integer off
+local real dir=1.
 local real posX
 local real posY
-loop
-set s=Reforged_HTI(4,pid)
-exitwhen s>=165
-set r=s/11
-set posX=GetPlayerStartLocationX(p)+I2R(ModuloInteger(s,11)-5)*128.
-if ModuloInteger(r,2)==1 then
-set posY=GetPlayerStartLocationY(p)+I2R((r+1)/2)*128.
-else
-set posY=GetPlayerStartLocationY(p)-I2R(r/2)*128.
+if ModuloInteger(pid,2)==1 then
+set dir=-1.
 endif
-call Reforged_HTSetI(4,pid,s+1)
+if range>=200 then
+set row=(range-100)/128
+if row<2 then
+set row=2
+endif
+if row>8 then
+set row=8
+endif
+endif
+loop
+exitwhen row>12
+set posY=GetPlayerStartLocationY(p)+dir*(512.-128.*I2R(row))
+set col=0
+loop
+exitwhen col>10
+if ModuloInteger(col,2)==1 then
+set off=(col+1)/2
+else
+set off=-col/2
+endif
+set posX=GetPlayerStartLocationX(p)+128.*I2R(off)
 if Reforged_BotSpotFree(posX,posY) then
 if IssueBuildOrderById(b,Reforged_HTI(11,i),posX,posY) then
+if range>=200 then
+call Reforged_HTSetI(28,pid,Reforged_HTI(28,pid)+Reforged_HTI(12,i))
+else
+call Reforged_HTSetI(27,pid,Reforged_HTI(27,pid)+Reforged_HTI(12,i))
+endif
 set b=null
 return true
 endif
 // free spot but refused: probably a tech requirement -> skip this unit for the rest of the level
 call Reforged_HTSetI(7,pid*600+i,L+1)
-call Reforged_HTSetI(4,pid,s)
 set b=null
 return false
 endif
+set col=col+1
+endloop
+set row=row+1
 endloop
 set b=null
 return false
 endfunction
-// best (Insane) or random affordable unit of the bot's builder; -1 if none
+// Pick a unit to build. Easy: random. Normal: random among the good ones (>=70% of the best value vs the next
+// wave), keeping gold split about evenly between melee and ranged. Insane: the best one.
 function Reforged_BotChooseBuild takes integer pid,integer gold returns integer
 local player p=Player(pid)
 local integer k=Reforged_BotBuilderIndex(GetUnitTypeId(N[pid+1]))
+local integer d=Reforged_HTI(2,pid)
+local boolean wantRanged=Reforged_HTI(28,pid)<Reforged_HTI(27,pid)
+local integer pass=0
 local integer i
 local integer last
 local integer pick=-1
@@ -135,36 +175,52 @@ call Reforged_HTSetI(21,4,0)
 if k<0 then
 return -1
 endif
-set i=Reforged_HTI(9,k)
 set last=Reforged_HTI(10,k)
+// pass 0: find the best value (wanted class only, unless Easy); pass 1: choose
+loop
+exitwhen pass>1
+set i=Reforged_HTI(9,k)
 loop
 exitwhen i>last
 set cost=Reforged_HTI(12,i)
 if cost<=gold and Reforged_HTI(7,pid*600+i)!=L+1 and GetPlayerTechMaxAllowed(p,Reforged_HTI(11,i))!=0 then
-if Reforged_HTI(2,pid)==2 then
-set v=Reforged_HTI(13,i)*1000/cost
-if v>best then
+if d==0 or (Reforged_HTI(26,i)>=200)==wantRanged or best==0 then
+set v=Reforged_HTI(13,i)*10*Reforged_BotMatchup(Reforged_HTI(33,i),Reforged_HTI(34,i))/cost
+if pass==0 then
+if (d==0 or (Reforged_HTI(26,i)>=200)==wantRanged) and v>best then
 set best=v
+endif
+elseif d==2 then
+if pick<0 or v>n then
+set n=v
 set pick=i
 endif
-else
+elseif d==0 or v*10>=best*7 then
 set n=n+1
 if GetRandomInt(1,n)==1 then
 set pick=i
 endif
 endif
 endif
+endif
 set i=i+1
 endloop
+set pass=pass+1
+endloop
+if d==2 then
+call Reforged_HTSetI(21,4,n)
+else
 call Reforged_HTSetI(21,4,best)
+endif
 return pick
 endfunction
-// best (Insane) or random affordable upgrade among the bot's towers; stores the tower in HT(22,1); index or -1
+// best (Insane) or random good (Normal) / any (Easy) upgrade among the bot's towers; tower goes to HT(22,1)
 function Reforged_BotChooseUpgrade takes integer pid,integer gold returns integer
 local player p=Player(pid)
 local group g=CreateGroup()
 local unit u
 local unit chosen=null
+local integer d=Reforged_HTI(2,pid)
 local integer j
 local integer t
 local integer pick=-1
@@ -185,19 +241,17 @@ exitwhen j>=cnt
 if Reforged_HTI(14,j)==t then
 set cost=Reforged_HTI(16,j)
 if cost<=gold and GetPlayerTechMaxAllowed(p,Reforged_HTI(15,j))!=0 then
-if Reforged_HTI(2,pid)==2 then
-set v=Reforged_HTI(17,j)*1000/cost
-if v>best then
-set best=v
-set pick=j
-set chosen=u
-endif
-else
+set v=Reforged_HTI(17,j)*10*Reforged_BotMatchup(Reforged_HTI(35,j),Reforged_HTI(36,j))/cost
+if d==0 then
 set n=n+1
 if GetRandomInt(1,n)==1 then
 set pick=j
 set chosen=u
 endif
+elseif v>best then
+set best=v
+set pick=j
+set chosen=u
 endif
 endif
 endif
@@ -225,34 +279,76 @@ if allowUpgrades then
 set upIdx=Reforged_BotChooseUpgrade(pid,gold)
 set upVal=Reforged_HTI(21,4)
 endif
-if upIdx>=0 and (buildIdx<0 or not idle or (d==2 and upVal>=buildVal) or (d!=2 and GetRandomInt(0,1)==0)) then
-return IssueImmediateOrderById(LoadUnitHandle(Reforged_HT,22,1),Reforged_HTI(15,upIdx))
+if upIdx>=0 and (buildIdx<0 or not idle or (d!=0 and upVal>=buildVal) or (d==0 and GetRandomInt(0,1)==0)) then
+if IssueImmediateOrderById(LoadUnitHandle(Reforged_HT,22,1),Reforged_HTI(15,upIdx)) then
+if Reforged_HTI(29,upIdx)==1 then
+call Reforged_HTSetI(28,pid,Reforged_HTI(28,pid)+Reforged_HTI(16,upIdx))
+else
+call Reforged_HTSetI(27,pid,Reforged_HTI(27,pid)+Reforged_HTI(16,upIdx))
+endif
+return true
+endif
+return false
 endif
 if buildIdx>=0 and idle then
 return Reforged_BotTryBuild(pid,buildIdx)
 endif
 return false
 endfunction
-// ---- income
-function Reforged_BotIncome takes integer pid,integer gold,integer maxWisps,boolean research returns boolean
+// ---- income: wisps (max 9) and Lumberjack research R003, up to the given caps
+function Reforged_BotIncome takes integer pid,integer gold,integer maxWisps,integer maxResearch returns boolean
 local player p=Player(pid)
 local unit town=Reforged_BotFindUnit(p,'h023',0)
+local integer wisps=Qx[pid+1]
+local integer res=GetPlayerTechCountSimple('R003',p)
 local boolean done=false
 if town!=null then
-if Qx[pid+1]<maxWisps and gold>=50 then
+if wisps<maxWisps and gold>=50 and (wisps<5 or wisps-5<=res or res>=maxResearch) then
 set done=IssueImmediateOrderById(town,'e003')
 endif
-if not done and research then
+if not done and res<maxResearch then
 set done=IssueImmediateOrderById(town,'R003')
-if not done then
-set done=IssueImmediateOrderById(town,'R00H')
 endif
+if not done and wisps<maxWisps and gold>=50 then
+set done=IssueImmediateOrderById(town,'e003')
 endif
 endif
 set town=null
 return done
 endfunction
-// ---- sending summons during a wave (they join the next wave)
+// ---- sends: counter the most common armor type among the enemy team's towers, never trash units
+function Reforged_BotEnemyArmor takes integer pid returns integer
+local group g=CreateGroup()
+local unit u
+local integer e=0
+local integer a
+local integer best=7
+local integer bestCount=0
+local integer array tally
+loop
+exitwhen e>7
+if IsPlayerEnemy(Player(e),Player(pid)) and GetPlayerSlotState(Player(e))==PLAYER_SLOT_STATE_PLAYING then
+call GroupEnumUnitsOfPlayer(g,Player(e),null)
+loop
+set u=FirstOfGroup(g)
+exitwhen u==null
+set a=Reforged_HTI(38,GetUnitTypeId(u))
+if a>0 then
+set tally[a-1]=tally[a-1]+1
+if tally[a-1]>bestCount then
+set bestCount=tally[a-1]
+set best=a-1
+endif
+endif
+call GroupRemoveUnit(g,u)
+endloop
+endif
+set e=e+1
+endloop
+call DestroyGroup(g)
+set g=null
+return best
+endfunction
 function Reforged_BotSend takes integer pid,integer reserve returns nothing
 local player p=Player(pid)
 local integer lumber=GetPlayerState(p,PLAYER_STATE_RESOURCE_LUMBER)-reserve
@@ -263,32 +359,37 @@ local integer at=GetUnitTypeId(Vr[pid+1])
 local integer i=0
 local integer cnt=Reforged_HTI(21,2)
 local integer pick=-1
-local integer n=0
+local integer best=0
 local integer sh
-if shop!=null then
-set st=GetUnitTypeId(shop)
+local integer v
+local integer minCost=10*(L+1)
+local integer armor
+if minCost>600 then
+set minCost=600
 endif
+if shop==null or lumber<minCost or lumber<40 then
+set shop=null
+return
+endif
+set st=GetUnitTypeId(shop)
 if L>=20 then
 set lt='h9B0'
 endif
+set armor=Reforged_BotEnemyArmor(pid)
 loop
 exitwhen i>=cnt
 set sh=Reforged_HTI(18,i)
-if (sh==st or sh==at or sh==lt) and Reforged_HTI(20,i)<=lumber then
-if Reforged_HTI(2,pid)==2 then
-if pick<0 or Reforged_HTI(20,i)>Reforged_HTI(20,pick) then
+if (sh==st or sh==at or sh==lt) and Reforged_HTI(20,i)<=lumber and Reforged_HTI(20,i)>=minCost then
+// counter factor first, then the most expensive
+set v=Reforged_HTI(30,Reforged_HTI(39,i)*8+armor)*10000+Reforged_HTI(20,i)
+if v>best then
+set best=v
 set pick=i
-endif
-else
-set n=n+1
-if GetRandomInt(1,n)==1 then
-set pick=i
-endif
 endif
 endif
 set i=i+1
 endloop
-if pick>=0 and shop!=null then
+if pick>=0 then
 call AdjustPlayerStateBJ(-Reforged_HTI(20,pick),p,PLAYER_STATE_RESOURCE_LUMBER)
 call CreateUnit(p,Reforged_HTI(19,pick),GetUnitX(shop),GetUnitY(shop)-200.,270.)
 endif
@@ -299,6 +400,9 @@ function Reforged_BotThink takes integer pid returns nothing
 local player p=Player(pid)
 local integer gold=GetPlayerState(p,PLAYER_STATE_RESOURCE_GOLD)
 local integer d=Reforged_HTI(2,pid)
+local integer next=L+1
+local integer res
+local integer allowance
 if N[pid+1]==null then
 return
 endif
@@ -310,11 +414,12 @@ if Reforged_BotBuilderIndex(GetUnitTypeId(N[pid+1]))<0 then
 return
 endif
 if Vv then
-// wave running: send summons
-if not Reforged_IsNoSendWave(L+1) then
-if d==2 then
-call Reforged_BotSend(pid,120)
-elseif d==1 and GetRandomInt(1,4)==1 and GetPlayerState(p,PLAYER_STATE_RESOURCE_LUMBER)>=150 then
+// wave running: send summons (they join the next wave); keep lumber for the next Lumberjack research
+if d!=0 and not Reforged_IsNoSendWave(next) then
+set res=GetPlayerTechCountSimple('R003',p)
+if res<7 then
+call Reforged_BotSend(pid,60+20*(res+1))
+else
 call Reforged_BotSend(pid,0)
 endif
 endif
@@ -323,13 +428,18 @@ endif
 if lr then
 return
 endif
-// new build phase: Insane adapts its target to last wave's leaks
+// new build phase: remember whether the last wave leaked
 if Reforged_HTI(6,pid)!=L then
 call Reforged_HTSetI(6,pid,L)
+call Reforged_HTSetI(37,pid,0)
 if co[pid+1]>Reforged_HTI(5,pid) then
+call Reforged_HTSetI(40,pid,1)
 call Reforged_HTSetR(3,pid,RMinBJ(Reforged_HTR(3,pid)*1.3,4.))
-elseif L>0 then
+else
+call Reforged_HTSetI(40,pid,0)
+if L>0 then
 call Reforged_HTSetR(3,pid,RMaxBJ(Reforged_HTR(3,pid)*0.93,0.6))
+endif
 endif
 call Reforged_HTSetI(5,pid,co[pid+1])
 endif
@@ -338,12 +448,30 @@ if GetRandomInt(0,1)==0 then
 call Reforged_BotArmy(pid,gold*7/10,L>=5)
 endif
 elseif d==1 then
-if L>=2 and GetRandomInt(1,5)==1 and Reforged_BotIncome(pid,gold,4,false) then
+// Normal economy: level 1 all-in on defense; no income spending before the hard levels 5 and 7 or after a
+// leak; 9 wisps / research 4 until level 7, then up to 9 / 7 while it holds. Everything else goes to defense.
+set allowance=0
+if next>=2 and next!=5 and next!=7 and Reforged_HTI(40,pid)==0 then
+if next<=4 then
+set allowance=1
+else
+set allowance=3
+endif
+endif
+if Reforged_HTI(37,pid)<allowance then
+if next<=7 then
+set res=4
+else
+set res=7
+endif
+if Reforged_BotIncome(pid,gold,9,res) then
+call Reforged_HTSetI(37,pid,Reforged_HTI(37,pid)+1)
 return
+endif
 endif
 call Reforged_BotArmy(pid,gold,true)
 else
-if Bo[pid+1]>=Reforged_BotTarget(pid) and Reforged_BotIncome(pid,gold,9,true) then
+if Bo[pid+1]>=Reforged_BotTarget(pid) and Reforged_BotIncome(pid,gold,9,8) then
 return
 endif
 call Reforged_BotArmy(pid,gold,true)
