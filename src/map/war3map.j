@@ -1766,7 +1766,7 @@ call ForGroup(ov,function kb)
 call TriggerAddAction(Ci,function Jb)
 endfunction
 function lb takes nothing returns nothing
-set H="3.5 x10 v3.9"
+set H="3.5 x10 v3.9 Reforged"
 set J=("|cffFF0000Legion TD Mega "+(H+"|r"))
 set Zo=(""+(H+"|r"))
 endfunction
@@ -1932,7 +1932,7 @@ call TriggerExecute(IV)
 call TriggerExecute(BV)
 call TriggerExecute(NV)
 call eN(1.)
-call DisplayTimedTextToForce(bj_FORCE_ALL_PLAYERS,10.,("Welcome to |cffFFcc00Legion TD |r |cffFF0000Mega|r 3.5 x10 v3.9 "+(" you have 15 seconds to enter gamemodes, if you don't enter any command, the default mode is -aphgggmmcbnseq")))
+call DisplayTimedTextToForce(bj_FORCE_ALL_PLAYERS,10.,("Welcome to |cffFFcc00Legion TD |r |cffFF0000Mega|r 3.5 x10 v3.9 |cff00ff00Reforged|r "+(" you have 15 seconds to enter gamemodes, if you don't enter any command, the default mode is -hpgmcb")))
 call TriggerExecute(PV)
 set jr=true
 call StartTimerBJ(Bx,false,15.)
@@ -10588,12 +10588,11 @@ function us takes nothing returns nothing
 call DestroyTextTag(Uo)
 call DestroyTextTag(uo)
 if(ts())then
-call TriggerExecute(XR)
+call TriggerExecute(IR)
 call TriggerExecute(BR)
 call TriggerExecute(cR)
 call TriggerExecute(bR)
 call TriggerExecute(dR)
-call TriggerExecute(tA)
 call TriggerExecute(DR)
 endif
 call DisableTrigger(XR)

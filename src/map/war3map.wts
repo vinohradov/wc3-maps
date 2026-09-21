@@ -44,7 +44,7 @@ Game is shutting down !!
 }
 STRING 1055
 {
-|Cff00ff00 Mega 3.5 x10 v3.9f
+|Cff00ff00 Mega 3.5 x10 v3.9f Reforged
 }
 STRING 1223
 {
@@ -72,7 +72,7 @@ Player 7
 }
 STRING 1277
 {
-Legion TD |cffFF0000Mega|r 3.5 x10 v3.9f |cff00ff00mod|r
+Legion TD |cffFF0000Mega|r 3.5 x10 v3.9f |cff00ff00Reforged|r
 }
 STRING 1278
 {

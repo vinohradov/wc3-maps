@@ -5,7 +5,7 @@ PJASS="$ROOT/tools/bin/pjass.exe"
 WC3="/c/Program Files/Warcraft III"
 ORIGINAL="$ROOT/maps/original/Legion TD Mega v3.5 x10.w3x"
 # Output name — this is also the file name other players download in the lobby
-OUT_NAME="Legion TD Mega v3.5 x10 mod.w3x"
+OUT_NAME="Legion TD Mega v3.5 x10 Reforged.w3x"
 OUT="$ROOT/maps/build/$OUT_NAME"
 # Named text files we edit (paths inside the archive)
 FILES=(
