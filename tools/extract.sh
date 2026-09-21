@@ -7,7 +7,8 @@ tmp="$(mktemp -d)"
 for f in "${FILES[@]}"; do
   rel="$(unix_path "$f")"
   mkdir -p "$ROOT/src/map/$(dirname "$rel")"
-  cp "$tmp/$(basename "$rel")" "$ROOT/src/map/$rel"  # MPQEditor extracts flat
+  # MPQEditor extracts flat; Reforged-only files don't exist in the original map
+  [ -f "$tmp/$(basename "$rel")" ] && cp "$tmp/$(basename "$rel")" "$ROOT/src/map/$rel"
 done
 # war3map.j ships with CR-only line endings; store as LF (build.sh restores CR)
 tr '\r' '\n' < "$ROOT/src/map/war3map.j" > "$tmp/j"

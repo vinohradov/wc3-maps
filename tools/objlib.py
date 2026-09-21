@@ -96,6 +96,8 @@ class Slk:
 class Txt:
     def __init__(self, name):
         self.path = UNITS / name
+        if not self.path.exists():
+            self.path.write_bytes(b"")
         raw = self.path.read_bytes()
         self.bom = raw.startswith(b"\xef\xbb\xbf")
         text = raw.decode("utf-8-sig")
@@ -130,3 +132,42 @@ class Txt:
     def save(self):
         data = self.eol.join(self.lines).encode("utf-8")
         self.path.write_bytes((b"\xef\xbb\xbf" if self.bom else b"") + data)
+
+
+def _is_new_id(oid):
+    return oid[:2] in ("h9", "A9")
+
+
+def move_new_sections(src, dst):
+    """Move every [h9xx]/[A9xx] section from Txt src into Txt dst (replacing dst's copy)."""
+    out, moved, i = [], {}, 0
+    lines = src.lines
+    while i < len(lines):
+        m = re.match(r"\[(\w{4})\]", lines[i])
+        if m and _is_new_id(m.group(1)):
+            j = i + 1
+            while j < len(lines) and not lines[j].startswith("["):
+                j += 1
+            moved[m.group(1)] = [l for l in lines[i:j] if l.strip()]
+            i = j
+            continue
+        out.append(lines[i])
+        i += 1
+    src.lines = out
+    keep = []
+    i = 0
+    while i < len(dst.lines):  # drop dst's stale copies of moved sections
+        m = re.match(r"\[(\w{4})\]", dst.lines[i])
+        if m and m.group(1) in moved:
+            i += 1
+            while i < len(dst.lines) and not dst.lines[i].startswith("["):
+                i += 1
+            continue
+        keep.append(dst.lines[i])
+        i += 1
+    while keep and not keep[-1].strip():
+        keep.pop()
+    for sec in moved.values():
+        keep += sec
+    dst.lines = keep + [""]
+    return len(moved)

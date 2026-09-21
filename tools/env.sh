@@ -14,6 +14,7 @@ FILES=(
   war3map.j war3map.wts war3mapExtra.txt
   'Units\AbilityBuffData.slk' 'Units\AbilityData.slk' 'Units\CampaignAbilityStrings.txt'
   'Units\CampaignUnitFunc.txt' 'Units\ItemData.slk' 'Units\ItemFunc.txt'
+  'Units\CampaignUnitStrings.txt' 'Units\CampaignAbilityFunc.txt'  # Reforged-only (new objects)
   'Units\NeutralUpgradeStrings.txt' 'Units\UnitAbilities.slk' 'Units\UnitBalance.slk'
   'Units\UnitData.slk' 'Units\UnitWeapons.slk' 'Units\UpgradeData.slk' 'Units\unitUI.slk'
 )

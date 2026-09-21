@@ -12,11 +12,12 @@ stage="$(mktemp -d)"
 for f in "${FILES[@]}"; do
   src="$ROOT/src/map/$(unix_path "$f")"
   if [ "$f" = war3map.j ]; then
-    # src keeps LF; the map ships with CR-only line endings, so restore those
-    tr -d '\r' < "$src" | tr '\n' '\r' > "$stage/war3map.j"
+    # CONFIRMED IN GAME: with the original's CR-only line endings a "//" comment swallows the rest of the
+    # script (crash on map select/load). So: strip comment lines and write CRLF.
+    tr -d '\r' < "$src" | grep -v '^[[:space:]]*//' | sed 's/$/\r/' > "$stage/war3map.j"
     src="$stage/war3map.j"
   elif [ "$f" = war3map.wts ]; then
-    # the game crashes on the map list if the strings file isn't CRLF (Git Bash sed -i strips CRs)
+    # keep the strings file CRLF like the original (Git Bash sed -i strips CRs)
     tr -d '\r' < "$src" | sed 's/$/\r/' > "$stage/war3map.wts"
     src="$stage/war3map.wts"
   fi

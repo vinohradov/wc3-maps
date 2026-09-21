@@ -5,7 +5,7 @@ Idempotent: clones templates on first run, then (re)applies every field below.
 Conventions kept from the map: summon lumber cost = level * 20 (the no-send refund relies on it),
 income ("points") ~ 5% of lumber cost.
 """
-from objlib import Slk, Txt
+from objlib import Slk, Txt, move_new_sections
 
 # how this map displays internal armor types in tooltips ("large" is shown as Heavy, "normal" as Fortified)
 ARMOR_NAME = {"small": "Light", "medium": "Medium", "large": "Heavy", "normal": "Fortified", "fort": "Fortified",
@@ -97,8 +97,16 @@ def ability_text(aid):
     return ABILITIES[aid][1]
 
 
+# The game reads each profile .txt into a 512 KB buffer; CampaignUnitFunc.txt was ~508 KB already and our
+# additions overflowed it (crash on map select). So all new [h9xx]/[A9xx] sections live in two small files that
+# the game also reads: Units\CampaignUnitStrings.txt and Units\CampaignAbilityFunc.txt.
+UNIT_EXTRA = "CampaignUnitStrings.txt"
+ABIL_EXTRA = "CampaignAbilityFunc.txt"
+
+
 def main():
     ad, astr = Slk("AbilityData.slk"), Txt("CampaignAbilityStrings.txt")
+    move_new_sections(Txt(ABIL_EXTRA), astr)
     for aid, (tpl, name, icon, fields, tip) in ABILITIES.items():
         ad.clone(tpl, aid)
         ad.set(aid, "levels", 1)
@@ -113,6 +121,7 @@ def main():
 
     slks = {n: Slk(n) for n in UNIT_SLKS}
     func = Txt("CampaignUnitFunc.txt")
+    move_new_sections(Txt(UNIT_EXTRA), func)
     for (uid, name, hotkey, pos, lumber, hp, armor, dtype, atype, dmg, dice, sides, cool, weapon, model, scale,
          icon, abils, missile, flavour) in SUMMONS:
         for s in slks.values():
@@ -223,11 +232,18 @@ def main():
         ad.set(aid, "levels", 1)
         ad.set(aid, "DataA1", amount)
     ad.save()
+    abil_extra = Txt(ABIL_EXTRA)
+    moved_a = move_new_sections(astr, abil_extra)
     astr.save()
+    abil_extra.save()
 
     for s in slks.values():
         s.save()
+    unit_extra = Txt(UNIT_EXTRA)
+    moved_u = move_new_sections(func, unit_extra)
     func.save()
+    unit_extra.save()
+    print(f"moved {moved_u} unit / {moved_a} ability sections into {UNIT_EXTRA} / {ABIL_EXTRA}")
     print("ok:", ", ".join(ABILITIES), "|", ", ".join(s[0] for s in SUMMONS), "|", BARRACKS, CHALLENGE,
           "|", ", ".join(CHAMPION_AURAS), ", ".join(HP_ABILITIES))
 

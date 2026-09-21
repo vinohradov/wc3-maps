@@ -12,7 +12,18 @@ bash tools/build.sh     # pjass check -> maps/build/<name>.w3x -> copy into Warc
 Build = copy of the original map with our edited files swapped in, so unnamed imported
 models/textures (113 `File000xxxxx` entries) are preserved untouched.
 
+**Read `docs/lessons.md` first** (crash causes, in-game test harness, shell pitfalls). Hosting notes: `docs/hosting.md`.
+
+## Status (2026-09-21)
+- Build loads in WC3 1.26 (automated `-loadfile` test OK). NOT yet play-tested by a human: bots, Challenge,
+  Legendary Barracks, shop locks, balance all need a first real game.
+- Hosting: IrInA works only via its connector (LAN list), not in iCCup's list. Email to iCCup (dev job + bot
+  permission) drafted by the user; answer pending.
+- Ideas parked: Discord/community site with voting, donations with cosmetic perks, bots buying King upgrades.
+
 ## Tools
+- `tools/wc3batch.ps1` — elevated in-game load test for `zz_*.w3x` maps (see docs/lessons.md)
+- `tools/set_header.py`, `tools/lint_shadow.py` — run by build.sh (map-list name; shadowing lint)
 - `tools/units.py <name|id>` / `--tree <builder>` — unit lookup (cost, stats, upgrades)
 - `tools/balance.py [N]` — rank buildable units by value per gold (uses fighter copies)
 - `tools/slk_set.py <file> <id> <column> <value>` — change one SLK cell
