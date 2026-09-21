@@ -10114,7 +10114,25 @@ call SetPlayerTechMaxAllowedSwap('u00E',0,GetEnumPlayer())
 call SetPlayerTechMaxAllowedSwap('u00P',0,GetEnumPlayer())
 endif
 endfunction
+// Reforged: if host (red) hasn't picked when this fires, pick Prophet (u00T) for them.
+// Uses the normal upgrade order so the map's own host-pick trigger (PR) gives it to everyone.
+function Reforged_AutoProphet takes nothing returns nothing
+local unit u=N[1]
+call DestroyTimer(GetExpiredTimer())
+if IsTriggerEnabled(PR) and u!=null and GetPlayerSlotState(Player(0))==PLAYER_SLOT_STATE_PLAYING then
+if GetUnitTypeId(u)!='e000' then
+// red may be on another picker page that lacks Prophet; reset to the first page
+call ReplaceUnitBJ(u,'e000',bj_UNIT_STATE_METHOD_RELATIVE)
+set u=bj_lastReplacedUnit
+set N[1]=u
+endif
+call DisplayTimedTextToForce(bj_FORCE_ALL_PLAYERS,10.,"|cffFFcc00Host Pick|r: host did not pick in time, everyone gets |cffFFcc00Prophet|r.")
+call IssueImmediateOrderById(u,'u00T')
+endif
+set u=null
+endfunction
 function IQ takes nothing returns nothing
+call TimerStart(CreateTimer(),20.,false,function Reforged_AutoProphet)
 set po=true
 set Ir=true
 call DisplayTimedTextToForce(bj_FORCE_ALL_PLAYERS,10.,"TRIGSTR_6941")
