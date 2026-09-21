@@ -51,10 +51,13 @@ call SaveUnitHandle(Reforged_HT,22,0,found)
 set found=null
 return LoadUnitHandle(Reforged_HT,22,0)
 endfunction
-// army value the bot wants before investing in income (Insane only)
+// army value Insane wants before investing in income: table HT(41,level) x its leak-adaptive ratio
 function Reforged_BotTarget takes integer pid returns integer
-local integer n=L+1
-return R2I(Reforged_HTR(3,pid)*I2R(200+60*n+4*n*n))
+local integer lvl=L+1
+if lvl>30 then
+set lvl=30
+endif
+return R2I(Reforged_HTR(3,pid)*I2R(Reforged_HTI(41,lvl)))
 endfunction
 function Reforged_BotSpotFree takes real posX,real posY returns boolean
 local group g=CreateGroup()
@@ -295,6 +298,99 @@ return Reforged_BotTryBuild(pid,buildIdx)
 endif
 return false
 endfunction
+// ---- Insane: mass one proven "core" unit (HT 43-45). Returns true if an order was given.
+function Reforged_BotCoreIndex takes integer pid,integer baseType returns integer
+local integer k=Reforged_BotBuilderIndex(GetUnitTypeId(N[pid+1]))
+local integer i
+local integer last
+if k<0 then
+return -1
+endif
+set i=Reforged_HTI(9,k)
+set last=Reforged_HTI(10,k)
+loop
+exitwhen i>last
+if Reforged_HTI(11,i)==baseType and GetPlayerTechMaxAllowed(Player(pid),baseType)!=0 then
+return i
+endif
+set i=i+1
+endloop
+return -1
+endfunction
+function Reforged_BotPickCore takes integer pid returns nothing
+local integer c=0
+local integer cnt=Reforged_HTI(21,5)
+local integer n=0
+local integer pick=-1
+loop
+exitwhen c>=cnt
+if Reforged_BotCoreIndex(pid,Reforged_HTI(43,c))>=0 then
+set n=n+1
+if GetRandomInt(1,n)==1 then
+set pick=c
+endif
+endif
+set c=c+1
+endloop
+if pick>=0 then
+call Reforged_HTSetI(42,pid,pick+1)
+else
+call Reforged_HTSetI(42,pid,-1)
+endif
+endfunction
+function Reforged_BotCoreArmy takes integer pid,integer gold returns boolean
+local player p=Player(pid)
+local integer core=Reforged_HTI(42,pid)
+local group g
+local unit u
+local integer j
+local integer t
+local integer cnt=Reforged_HTI(21,1)
+local integer unitIdx
+local boolean done=false
+if core==0 then
+call Reforged_BotPickCore(pid)
+set core=Reforged_HTI(42,pid)
+endif
+if core<0 then
+return false
+endif
+// carry cores: once more gold sits in ranged than in melee, let the general logic add melee tanks
+if Reforged_HTI(44,core-1)==2 and Reforged_HTI(28,pid)>Reforged_HTI(27,pid) then
+return false
+endif
+// upgrades of core units: always for upgrade-first cores, from level 6 for mass/carry cores
+if Reforged_HTI(44,core-1)==1 or L>=5 then
+set g=CreateGroup()
+call GroupEnumUnitsOfPlayer(g,p,null)
+loop
+set u=FirstOfGroup(g)
+exitwhen u==null
+if not done and GetWidgetLife(u)>0.405 and Reforged_HTI(45,GetUnitTypeId(u))==core and not IsUnitInGroup(u,zx) and not IsUnitInGroup(u,Zx) then
+set t=GetUnitTypeId(u)
+set j=0
+loop
+exitwhen j>=cnt or done
+if Reforged_HTI(14,j)==t and Reforged_HTI(45,Reforged_HTI(15,j))==core and Reforged_HTI(16,j)<=gold then
+set done=IssueImmediateOrderById(u,Reforged_HTI(15,j))
+endif
+set j=j+1
+endloop
+endif
+call GroupRemoveUnit(g,u)
+endloop
+call DestroyGroup(g)
+set g=null
+if done then
+return true
+endif
+endif
+set unitIdx=Reforged_BotCoreIndex(pid,Reforged_HTI(43,core-1))
+if unitIdx>=0 and Reforged_HTI(12,unitIdx)<=gold and GetUnitCurrentOrder(N[pid+1])==0 then
+return Reforged_BotTryBuild(pid,unitIdx)
+endif
+return false
+endfunction
 // ---- income: wisps (max 9) and Lumberjack research R003, up to the given caps
 function Reforged_BotIncome takes integer pid,integer gold,integer maxWisps,integer maxResearch returns boolean
 local player p=Player(pid)
@@ -438,7 +534,7 @@ call Reforged_HTSetR(3,pid,RMinBJ(Reforged_HTR(3,pid)*1.3,4.))
 else
 call Reforged_HTSetI(40,pid,0)
 if L>0 then
-call Reforged_HTSetR(3,pid,RMaxBJ(Reforged_HTR(3,pid)*0.93,0.6))
+call Reforged_HTSetR(3,pid,RMaxBJ(Reforged_HTR(3,pid)*0.95,0.7))
 endif
 endif
 call Reforged_HTSetI(5,pid,co[pid+1])
@@ -471,10 +567,22 @@ endif
 endif
 call Reforged_BotArmy(pid,gold,true)
 else
-if Bo[pid+1]>=Reforged_BotTarget(pid) and Reforged_BotIncome(pid,gold,9,8) then
+// Insane: army value just above the (leak-adaptive) target, everything else into income
+if Bo[pid+1]>=Reforged_BotTarget(pid) then
+if Reforged_BotIncome(pid,gold,9,8) then
 return
 endif
+// income maxed or not affordable: keep the gold unless it piles up
+if gold<600 then
+return
+endif
+endif
+if not Reforged_BotCoreArmy(pid,gold) then
+// no core unit available for this builder, or out of room: general best-value logic
+if Reforged_HTI(42,pid)<0 or gold>=300 or Reforged_HTI(44,Reforged_HTI(42,pid)-1)==2 then
 call Reforged_BotArmy(pid,gold,true)
+endif
+endif
 endif
 endfunction
 function Reforged_BotTick takes nothing returns nothing

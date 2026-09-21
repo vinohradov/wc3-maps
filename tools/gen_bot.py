@@ -127,6 +127,41 @@ for lvl, u in enumerate(waves, 1):
     lines.append(f"call SaveInteger(Reforged_HT,31,{lvl},{atk(u)})")
     lines.append(f"call SaveInteger(Reforged_HT,32,{lvl},{arm(u)})")
 
+# ---- Insane: proven "core" units (from the map owner's experience) and the value needed per level.
+# (base unit, upgrade chain, upgrade_first): upgrade_first cores finish upgrades before building more
+# (2 Elite Archers, 3 Veterans, 2 Frenzy Ghouls hold level 1); mass cores build the base unit
+# (8 Ogres, 2 Grizzlies, 4-5 Raiders, 2 Outcasts hold level 1). All of them are ~400 gold for level 1.
+CORES = [("h012", ["h013"], 0), ("h09W", ["h09M"], 1), ("h00M", ["h00T"], 1), ("h0CI", ["h0CK"], 1),
+         ("h018", ["h019"], 0), ("h0BX", ["h0C0"], 0), ("h05V", ["h05W"], 0),
+         # 1 Spawn of Dragon holds level 1; splash Dragon Aspects carry level 5
+         ("h01A", ["h01B"], 1),
+         # flag 2 = ranged carry: about half the gold into the carry, the other half into melee tanks
+         ("h021", ["h022"], 2)]
+for ci, (base, chain, first) in enumerate(CORES):
+    lines.append(f"call SaveInteger(Reforged_HT,43,{ci},'{base}')")
+    lines.append(f"call SaveInteger(Reforged_HT,44,{ci},{first})")
+    for u in [base] + chain:
+        lines.append(f"call SaveInteger(Reforged_HT,45,'{u}',{ci + 1})")
+lines.append(f"call SaveInteger(Reforged_HT,21,5,{len(CORES)})")
+# value target: 400 at level 1 (owner's data), growing with wave threat^0.8 (fits his level 2-3 counts);
+# boss levels 10/20/30 are arena fights, so just +30% over the previous level. Bots adapt it to their leaks.
+counts = [int(x) for x in re.search(r'set Jv=",([\d,]+)', script).group(1).split(",")[:30]]
+threat = []
+for u, c in zip(waves, counts):
+    b, w = bal[u], wp[u]
+    avg = f(w.get("dmgplus1")) + f(w.get("dice1")) * (f(w.get("sides1")) + 1) / 2
+    threat.append(c * (f(b["HP"]) * avg / (f(w.get("cool1")) or 1)) ** 0.5)
+target = []
+for lvl in range(1, 31):
+    t = 400 * (threat[lvl - 1] / threat[0]) ** 0.8
+    if lvl in (10, 20, 30):
+        t = target[-1] * 1.3
+    if target:  # never below the previous level, and at most +40% per level (wave 14 is an outlier)
+        t = min(max(t, target[-1]), target[-1] * 1.4)
+    target.append(int(t))
+    lines.append(f"call SaveInteger(Reforged_HT,41,{lvl},{target[-1]})")
+print("insane value targets:", target)
+
 # JASS limits the number of operations per function call, so split the data into chunks
 chunks, out = [lines[i:i + 400] for i in range(0, len(lines), 400)], []
 for i, c in enumerate(chunks):
