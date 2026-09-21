@@ -7,6 +7,8 @@ ORIGINAL="$ROOT/maps/original/Legion TD Mega v3.5 x10.w3x"
 # Output name — this is also the file name other players download in the lobby
 OUT_NAME="Legion TD Mega v3.5 x10 Reforged.w3x"
 OUT="$ROOT/maps/build/$OUT_NAME"
+# name in the game's map list (HM3W header)
+LIST_NAME="LTD Mega x10 |cff00ff00Reforged|r"
 # Named text files we edit (paths inside the archive)
 FILES=(
   war3map.j war3map.wts war3mapExtra.txt

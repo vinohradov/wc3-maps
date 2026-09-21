@@ -23,6 +23,8 @@ for f in "${FILES[@]}"; do
 done
 rm -rf "$stage"
 "$MPQ" compact "$(w "$OUT")" >/dev/null 2>&1 || true
+# name shown in the 1.26 map list comes from the HM3W header, not from war3map.wts
+(cd "$ROOT" && uv run -q python tools/set_header.py "$OUT" "$LIST_NAME")
 ls -la "$OUT"
 # Install only on request (Program Files needs write permission): INSTALL=1 bash tools/build.sh
 if [ "${INSTALL:-0}" = 1 ]; then
