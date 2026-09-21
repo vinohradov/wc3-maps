@@ -20,4 +20,7 @@ done
 rm -rf "$stage"
 "$MPQ" compact "$(w "$OUT")" >/dev/null 2>&1 || true
 ls -la "$OUT"
-cp "$OUT" "$WC3/Maps/Download/" && echo "Installed to $WC3/Maps/Download/$OUT_NAME"
+# Install only on request (Program Files needs write permission): INSTALL=1 bash tools/build.sh
+if [ "${INSTALL:-0}" = 1 ]; then
+  cp "$OUT" "$WC3/Maps/Download/" && echo "Installed to $WC3/Maps/Download/$OUT_NAME"
+fi
