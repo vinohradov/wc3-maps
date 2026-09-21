@@ -12,6 +12,24 @@ bash tools/build.sh     # pjass check -> maps/build/<name>.w3x -> copy into Warc
 Build = copy of the original map with our edited files swapped in, so unnamed imported
 models/textures (113 `File000xxxxx` entries) are preserved untouched.
 
+## Tools
+- `tools/units.py <name|id>` / `--tree <builder>` — unit lookup (cost, stats, upgrades)
+- `tools/balance.py [N]` — rank buildable units by value per gold (uses fighter copies)
+- `tools/slk_set.py <file> <id> <column> <value>` — change one SLK cell
+- `tools/reforged_objects.py` — (re)generates all new objects (Legendary Barracks, summons, auras, Challenge); idempotent
+- `tools/objmod.py <file.w3a>` — dump binary object-mod files
+- Script additions in `war3map.j` are prefixed `Reforged_`.
+
+## Reforged changes (vs. original v3.9f)
+- Name "Reforged"; default mode `-hpgmcb`; host pick auto-picks Prophet after 20 s
+- Balance: Infernal burn 7 dps, Greymane large armor, Ogre Basher 45, Veteran 923 HP,
+  Proton 25 / Adept +155, Peewee 20, Servant 35, Tuskarr 15; sell-exploit point values fixed
+- Waves 6, 15, 18, 19, 21, 22, 23, 25, 26 stronger
+- Summons blocked on levels 1/10/20/30 unless mode `-sa`
+- Legendary Barracks from level 20: Pit Lord, Faceless One, Anub'arak, Nether Dragon, Eredar Warlock, Mannoroth
+- Challenge (Town shop): Champion creep with 10x HP + aura, reward (wave+1)*15 + 10*streak
+- Note: the map has an anti-cheat gold ledger `Br[]` — any gold given by script must be added to it
+
 ## What the map looks like inside
 The map is **protected/optimized**: no WE trigger files (`.wtg/.wct`), object data merged into SLKs,
 imported file names stripped, script identifiers obfuscated. World Editor won't open it — edit text directly:
