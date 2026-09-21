@@ -84,8 +84,8 @@ CHALLENGE_ACTIVE = "h9C1"  # same, shown instead of h9C0 while a challenge is qu
 CHAMPION_AURAS = {  # one is picked at random for each Champion
     "A9B0": ("AHad", "Champion: Shatter", "BTNHelmutPurple",
              {"Area1": 700, "DataA1": -3, "targs1": AURA_TARGETS_ENEMY}, "Nearby defenders have 3 less armor."),
-    "A9B1": ("AOae", "Champion: Frenzy", "BTNHelmutPurple", {"Area1": 700, "DataA1": 0.2, "DataB1": 0.2},
-             "Nearby attackers move and attack 20% faster."),
+    "A9B1": ("AOae", "Champion: Frenzy", "BTNHelmutPurple", {"Area1": 700, "DataA1": 0.1, "DataB1": 0.1},
+             "Nearby attackers move and attack 10% faster."),
     "A9B2": ("AEah", "Champion: Spikes", "BTNHelmutPurple", {"Area1": 700, "DataA1": 0.25},
              "Nearby attackers return 25% of melee damage taken."),
 }
@@ -179,8 +179,8 @@ def main():
             uber = next((l.split("=", 1)[1] for l in func.lines[t0:t1] if l.startswith("Ubertip=")), None)
             if uber is not None:
                 func.set(lid, "Ubertip", uber)
-            func.set(lid, "Tip", tip.replace(" |cffFF0000(locked this level)|r", "") +
-                     " |cffFF0000(locked this level)|r")
+            note = "(from level 21; locked on boss levels)" if prefix == "h9E" else "(locked this level)"
+            func.set(lid, "Tip", tip + " |cffFF0000" + note + "|r")
         for s in slks.values():
             if shop in s.rows:
                 s.clone(shop, locked_shop)

@@ -256,8 +256,9 @@ endfunction
 function Reforged_BotSend takes integer pid,integer reserve returns nothing
 local player p=Player(pid)
 local integer lumber=GetPlayerState(p,PLAYER_STATE_RESOURCE_LUMBER)-reserve
-local unit shop=Reforged_BotFindUnit(p,'h05C','h9B0')
+local unit shop=Reforged_BotFindUnit(p,'h05C','h9B1')
 local integer st=0
+local integer lt=0
 local integer at=GetUnitTypeId(Vr[pid+1])
 local integer i=0
 local integer cnt=Reforged_HTI(21,2)
@@ -267,10 +268,13 @@ local integer sh
 if shop!=null then
 set st=GetUnitTypeId(shop)
 endif
+if L>=20 then
+set lt='h9B0'
+endif
 loop
 exitwhen i>=cnt
 set sh=Reforged_HTI(18,i)
-if (sh==st or sh==at) and Reforged_HTI(20,i)<=lumber then
+if (sh==st or sh==at or sh==lt) and Reforged_HTI(20,i)<=lumber then
 if Reforged_HTI(2,pid)==2 then
 if pick<0 or Reforged_HTI(20,i)>Reforged_HTI(20,pick) then
 set pick=i

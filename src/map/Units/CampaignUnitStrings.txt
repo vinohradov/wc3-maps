@@ -262,7 +262,7 @@ Sellunits=h9D0,h9D1,h9D2,h9D3,h9D4,h9D5,h9D6,h9D7,h9D8,h9D9,h9DA,h9DB
 [h9E0]
 Name=Pit Lord
 Hotkey=Q
-Tip=Summon Pit Lord (|cffFFcc00Q|r) |cffFF0000(locked this level)|r
+Tip=Summon Pit Lord (|cffFFcc00Q|r) |cffFF0000(from level 21; locked on boss levels)|r
 Ubertip="Brutal demon lord whose cleaving blows hit everything around him.|n|n|cffFFcc00+25 income|r|n|cffCCCCCCMelee, Normal damage, Heavy armor.|r|n|cff33BBBBInfernal Endurance|r: Nearby allied attackers move and attack 15% faster."
 Art=ReplaceableTextures\CommandButtons\BTNPitLord.blp
 Buttonpos=0,0
@@ -275,7 +275,7 @@ Missilespeed=1800
 [h9E1]
 Name=Faceless One
 Hotkey=W
-Tip=Summon Faceless One (|cffFFcc00W|r) |cffFF0000(locked this level)|r
+Tip=Summon Faceless One (|cffFFcc00W|r) |cffFF0000(from level 21; locked on boss levels)|r
 Ubertip="Horror from the void that strips defenders of their armor.|n|n|cffFFcc00+37 income|r|n|cffCCCCCCMelee, Magic damage, Medium armor.|r|n|cff33BBBBVoid Aura|r: Nearby defenders have 4 less armor.|n|cff33BBBBMind Devour|r: Each attack burns 30 mana."
 Art=ReplaceableTextures\CommandButtons\BTNFacelessOne.blp
 Buttonpos=1,0
@@ -288,7 +288,7 @@ Missilespeed=1800
 [h9E2]
 Name=Anub'arak
 Hotkey=E
-Tip=Summon Anub'arak (|cffFFcc00E|r) |cffFF0000(locked this level)|r
+Tip=Summon Anub'arak (|cffFFcc00E|r) |cffFF0000(from level 21; locked on boss levels)|r
 Ubertip="Ancient crypt lord with a spiked shell that punishes melee defenders.|n|n|cffFFcc00+50 income|r|n|cffCCCCCCMelee, Normal damage, Heavy armor.|r|n|cff33BBBBCarapace Aura|r: Nearby allied attackers return 20% of melee damage taken."
 Art=ReplaceableTextures\CommandButtons\BTNHeroCryptLord.blp
 Buttonpos=2,0
@@ -301,7 +301,7 @@ Missilespeed=1800
 [h9E3]
 Name=Nether Dragon
 Hotkey=R
-Tip=Summon Nether Dragon (|cffFFcc00R|r) |cffFF0000(locked this level)|r
+Tip=Summon Nether Dragon (|cffFFcc00R|r) |cffFF0000(from level 21; locked on boss levels)|r
 Ubertip="Its nether breath splashes defenders and chills everyone nearby.|n|n|cffFFcc00+75 income|r|n|cffCCCCCCRanged, Magic damage, Fortified armor.|r|n|cff33BBBBNether Frost|r: Nearby defenders move and attack 20% slower."
 Art=ReplaceableTextures\CommandButtons\BTNNetherDragon.blp
 Buttonpos=3,0
@@ -314,7 +314,7 @@ Missilespeed=1800
 [h9E4]
 Name=Eredar Warlock
 Hotkey=A
-Tip=Summon Eredar Warlock (|cffFFcc00A|r) |cffFF0000(locked this level)|r
+Tip=Summon Eredar Warlock (|cffFFcc00A|r) |cffFF0000(from level 21; locked on boss levels)|r
 Ubertip="Warlock of the Burning Legion; empowers attackers and burns defenders.|n|n|cffFFcc00+100 income|r|n|cffCCCCCCRanged, Chaos damage, Medium armor.|r|n|cff33BBBBCommand of the Legion|r: Nearby allied attackers deal 20% more damage.|n|cff33BBBBFel Fire|r: Burns nearby defenders for 25 damage per second."
 Art=ReplaceableTextures\CommandButtons\BTNEredarRed.blp
 Buttonpos=0,1
@@ -327,7 +327,7 @@ Missilespeed=1800
 [h9E5]
 Name=Mannoroth
 Hotkey=S
-Tip=Summon Mannoroth (|cffFFcc00S|r) |cffFF0000(locked this level)|r
+Tip=Summon Mannoroth (|cffFFcc00S|r) |cffFF0000(from level 21; locked on boss levels)|r
 Ubertip="The Destructor. Shields and heals the whole wave, and rises again once.|n|n|cffFFcc00+150 income|r|n|cffCCCCCCMelee, Chaos damage, Heavy armor.|r|n|cff33BBBBLegion Aura|r: Nearby allied attackers have 5 more armor.|n|cff33BBBBLegion Vigor|r: Nearby allied attackers regenerate 20 HP per second.|n|cff33BBBBUndying|r: Revives once at full HP 3 seconds after dying."
 Art=ReplaceableTextures\CommandButtons\BTNMannoroth.blp
 Buttonpos=1,1

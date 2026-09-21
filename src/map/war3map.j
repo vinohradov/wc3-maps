@@ -855,13 +855,14 @@ function Reforged_IsBarracks takes nothing returns boolean
 local integer t=GetUnitTypeId(GetFilterUnit())
 return t=='h05C' or t=='h9B0' or t=='h9B1' or t=='h9B2'
 endfunction
-function Reforged_BarracksTarget takes nothing returns integer
+// cheap Barracks: h05C / locked h9B1. Legendary Barracks (own building): h9B0 from level 20 / locked h9B2
+function Reforged_BarracksTarget takes integer cur returns integer
 local boolean locked=Reforged_IsNoSendWave(L+1)
-if L>=20 then
-if locked then
-return 'h9B2'
-endif
+if cur=='h9B0' or cur=='h9B2' then
+if L>=20 and not locked then
 return 'h9B0'
+endif
+return 'h9B2'
 endif
 if locked then
 return 'h9B1'
@@ -877,7 +878,7 @@ endif
 return 'h0B0'
 endfunction
 function Reforged_ReplaceBarracks takes nothing returns nothing
-local integer t=Reforged_BarracksTarget()
+local integer t=Reforged_BarracksTarget(GetUnitTypeId(GetEnumUnit()))
 if GetUnitTypeId(GetEnumUnit())!=t then
 call ReplaceUnitBJ(GetEnumUnit(),t,bj_UNIT_STATE_METHOD_RELATIVE)
 endif
@@ -2261,8 +2262,9 @@ endfunction
 function Reforged_BotSend takes integer pid,integer reserve returns nothing
 local player p=Player(pid)
 local integer lumber=GetPlayerState(p,PLAYER_STATE_RESOURCE_LUMBER)-reserve
-local unit shop=Reforged_BotFindUnit(p,'h05C','h9B0')
+local unit shop=Reforged_BotFindUnit(p,'h05C','h9B1')
 local integer st=0
+local integer lt=0
 local integer at=GetUnitTypeId(Vr[pid+1])
 local integer i=0
 local integer cnt=Reforged_HTI(21,2)
@@ -2272,10 +2274,13 @@ local integer sh
 if shop!=null then
 set st=GetUnitTypeId(shop)
 endif
+if L>=20 then
+set lt='h9B0'
+endif
 loop
 exitwhen i>=cnt
 set sh=Reforged_HTI(18,i)
-if (sh==st or sh==at) and Reforged_HTI(20,i)<=lumber then
+if (sh==st or sh==at or sh==lt) and Reforged_HTI(20,i)<=lumber then
 if Reforged_HTI(2,pid)==2 then
 if pick<0 or Reforged_HTI(20,i)>Reforged_HTI(20,pick) then
 set pick=i
@@ -3023,41 +3028,49 @@ set u=CreateUnit(p,'h024',-5425,4250,270)
 set u=CreateUnit(p,'h05C',-5500,4100,270)
 set vA=CreateUnit(p,'h023',-5850,4000,270)
 set iA=CreateUnit(p,'h05D',-5500,3950,270)
+set u=CreateUnit(p,'h9B2',-5500,3800,270)
 set p=Player(1)
 set u=CreateUnit(p,'h024',-5425,600,270)
 set u=CreateUnit(p,'h05C',-5500,400,270)
 set EA=CreateUnit(p,'h023',-5850,250,270)
 set oA=CreateUnit(p,'h05D',-5500,250,270)
+set u=CreateUnit(p,'h9B2',-5500,100,270)
 set p=Player(2)
 set u=CreateUnit(p,'h024',-3775,4250,270)
 set u=CreateUnit(p,'h05C',-3200,4100,270)
 set AA=CreateUnit(p,'h023',-3600,4000,270)
 set VA=CreateUnit(p,'h05D',-3200,3950,270)
+set u=CreateUnit(p,'h9B2',-3200,3800,270)
 set p=Player(3)
 set u=CreateUnit(p,'h024',-3725,600,270)
 set u=CreateUnit(p,'h05C',-3200,400,270)
 set OA=CreateUnit(p,'h023',-3600,250,270)
 set FA=CreateUnit(p,'h05D',-3200,250,270)
+set u=CreateUnit(p,'h9B2',-3200,100,270)
 set p=Player(4)
 set u=CreateUnit(p,'h024',3650,4250,270)
 set u=CreateUnit(p,'h05C',3600,4100,270)
 set fA=CreateUnit(p,'h023',3200,4000,270)
 set bA=CreateUnit(p,'h05D',3600,3950,270)
+set u=CreateUnit(p,'h9B2',3600,3800,270)
 set p=Player(5)
 set u=CreateUnit(p,'h024',3650,600,270)
 set u=CreateUnit(p,'h05C',3600,400,270)
 set gA=CreateUnit(p,'h023',3200,250,270)
 set NA=CreateUnit(p,'h05D',3600,250,270)
+set u=CreateUnit(p,'h9B2',3600,100,270)
 set p=Player(6)
 set u=CreateUnit(p,'h024',5400,4250,270)
 set u=CreateUnit(p,'h05C',5875,4100,270)
 set rA=CreateUnit(p,'h023',5500,4000,270)
 set xA=CreateUnit(p,'h05D',5875,3950,270)
+set u=CreateUnit(p,'h9B2',5875,3800,270)
 set p=Player(7)
 set u=CreateUnit(p,'h024',5400,600,270)
 set u=CreateUnit(p,'h05C',5875,400,270)
 set DA=CreateUnit(p,'h023',5500,250,270)
 set dA=CreateUnit(p,'h05D',5875,250,270)
+set u=CreateUnit(p,'h9B2',5875,100,270)
 endfunction
 function Eb takes nothing returns nothing
 local player p
@@ -3150,11 +3163,14 @@ set Reforged_ChUnit[pid]=null
 call Reforged_ChClearFx(pid)
 set Reforged_ChStreak[pid]=0
 endif
-if Reforged_ChWave[pid]==L then
-call Reforged_MakeChampion(u,pid)
-else
+call SaveInteger(Reforged_HT,25,pid,0)
+if Reforged_ChWave[pid]!=L then
 set Reforged_ChStreak[pid]=0
 endif
+endif
+call SaveInteger(Reforged_HT,25,pid,LoadInteger(Reforged_HT,25,pid)+1)
+if Reforged_ChWave[pid]==L and LoadInteger(Reforged_HT,25,pid)==Fv[L]/2+1 then
+call Reforged_MakeChampion(u,pid)
 endif
 endfunction
 function Reforged_OnChallengeBought takes nothing returns nothing
@@ -14013,6 +14029,8 @@ if(wU())then
 call TriggerExecute(GI)
 endif
 call DisplayTimedTextToForce(bj_FORCE_ALL_PLAYERS,30,"TRIGSTR_5627")
+call FogEnable(false)
+call FogMaskEnable(false)
 set ro=true
 call DisableTrigger(CI)
 call DisableTrigger(JR)
@@ -14052,6 +14070,8 @@ if(zU())then
 call TriggerExecute(GI)
 endif
 call DisplayTimedTextToForce(bj_FORCE_ALL_PLAYERS,30,"TRIGSTR_5627")
+call FogEnable(false)
+call FogMaskEnable(false)
 set ro=true
 call DisableTrigger(CI)
 call DisableTrigger(JR)

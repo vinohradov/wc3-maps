@@ -44,6 +44,8 @@ def read_txt(name):
 balance = read_slk("UnitBalance.slk")
 weapons = read_slk("UnitWeapons.slk")
 func = read_txt("CampaignUnitFunc.txt")
+if (UNITS / "CampaignUnitStrings.txt").exists():  # Reforged-only sections live here
+    func.update(read_txt("CampaignUnitStrings.txt"))
 
 
 def name(uid):

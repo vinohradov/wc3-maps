@@ -15136,8 +15136,8 @@ C;X11;K1
 C;X12;K1
 C;X15;K"air,ground,friend,self,vuln,invu"
 C;X21;K700
-C;X23;K0.2
-C;X24;K0.2
+C;X23;K0.1
+C;X24;K0.1
 C;X33;K"BOae"
 C;X35;K"air,ground,friend,self,vuln,invu"
 C;X41;K900
