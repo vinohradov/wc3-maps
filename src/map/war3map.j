@@ -808,6 +808,7 @@ real yA=.0
 group YA=null
 force zA=null
 boolexpr ZA=null
+boolean Reforged_SendAlways=false
 endglobals
 function eN takes real xN returns nothing
 local real oN
@@ -6087,6 +6088,13 @@ endfunction
 function VG takes nothing returns boolean
 return((IsUnitType(GetEnteringUnit(),UNIT_TYPE_SUMMONED))and(IsUnitType(GetEnteringUnit(),UNIT_TYPE_GIANT)==false)and(IsUnitType(GetEnteringUnit(),UNIT_TYPE_UNDEAD)==false)and(GetOwningPlayer(GetEnteringUnit())!=Player(8))and(GetOwningPlayer(GetEnteringUnit())!=Player(9))and(GetOwningPlayer(GetEnteringUnit())!=Player($A))and(GetOwningPlayer(GetEnteringUnit())!=Player($B)))!=null
 endfunction
+// Reforged: summons are blocked on these levels unless mode "sa" is on
+function Reforged_IsNoSendWave takes integer lvl returns boolean
+if Reforged_SendAlways then
+return false
+endif
+return lvl==1 or lvl==10 or lvl==20 or lvl==30
+endfunction
 function Trig_Purchase_Summon_Func005C takes nothing returns boolean
 return(IsPlayerAlly(GetOwningPlayer(GetEnteringUnit()),Player(8)))
 endfunction
@@ -6094,6 +6102,15 @@ function EG takes nothing returns nothing
 local unit u=GetEnteringUnit()
 local player p=GetOwningPlayer(GetEnteringUnit())
 local integer id=GetPlayerId(p)+1
+if Reforged_IsNoSendWave(L+1) then
+// summon cost is always level*20 lumber
+call AdjustPlayerStateBJ(GetUnitLevel(u)*20,p,PLAYER_STATE_RESOURCE_LUMBER)
+call DisplayTimedTextToPlayer(p,0,0,7.,"|cffFF0000Summons can't be sent on level "+I2S(L+1)+"|r (levels 1, 10, 20, 30). Lumber refunded.")
+call RemoveUnit(u)
+set u=null
+set p=null
+return
+endif
 set ze[id]=(ze[id]+1)
 if(vx==false)then
 set Pe[id]=(Pe[id]+GetUnitPointValueByType(GetUnitTypeId(GetEnteringUnit())))
@@ -10259,7 +10276,7 @@ call DisplayTimedTextToForce(bj_FORCE_ALL_PLAYERS,10.,"TRIGSTR_5874")
 call DisableTrigger(GetTriggeringTrigger())
 endfunction
 function uQ takes nothing returns boolean
-return(Ix=="ar")or(Ix=="ap")or(Ix=="sd")or(Ix=="hp")or(Ix=="mm")or(Ix=="nm")or(Ix=="hg")or(Ix=="gg")or(Ix=="cb")or(Ix=="li")or(Ix=="ns")or(Ix=="eq")or(Ix=="gm")or(Ix=="gc")or(Ix=="gl")or(Ix=="cl")or(Ix=="lc")
+return(Ix=="ar")or(Ix=="ap")or(Ix=="sd")or(Ix=="hp")or(Ix=="mm")or(Ix=="nm")or(Ix=="hg")or(Ix=="gg")or(Ix=="cb")or(Ix=="li")or(Ix=="ns")or(Ix=="eq")or(Ix=="gm")or(Ix=="gc")or(Ix=="gl")or(Ix=="cl")or(Ix=="lc")or(Ix=="sa")
 endfunction
 function UQ takes nothing returns boolean
 return(uQ())
@@ -10394,6 +10411,11 @@ if(Vs())then
 set Wx=true
 call ConditionalTriggerExecute(dR)
 call ConditionalTriggerExecute(AR)
+endif
+if(Ix=="sa")then
+set Wx=true
+set Reforged_SendAlways=true
+call DisplayTimedTextToForce(bj_FORCE_ALL_PLAYERS,10.,"|cff3333AASend Always|r: summons can be sent on levels 1, 10, 20 and 30.")
 endif
 if(Es())then
 call ConditionalTriggerExecute(BR)
@@ -10589,6 +10611,9 @@ set wx=(wx+"ns")
 endif
 if(Ps())then
 set wx=(wx+"eq")
+endif
+if(Reforged_SendAlways)then
+set wx=(wx+"sa")
 endif
 if(Qs())then
 call MultiboardSetTitleText(Be,(Ve+("|cffFF0000 ("+(wx+"*)|r"))))

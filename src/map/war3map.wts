@@ -1045,6 +1045,7 @@ STRING 5464
 |CFFFF0000-hg|r: hourglass
 |CFFFF0000-cb|r: change builder
 |CFFFF0000-eq|r: x10 time creep spawn
+|CFFFF0000-sa|r: send always (summons allowed on levels 1/10/20/30)
 |CFFFF0000-ni|r: no income
 |CFFFF0000-nm|r: no middle
 |CFFFF0000-sm|r: short mode (less lumber)
@@ -1537,6 +1538,7 @@ Secondary Mode:
 |CFFFF0000-HG|r: Hour Glass
 |CFFFF0000-CB|r: Change Builder
 |CFFFF0000-EQ|r: 10x creep spawn
+|CFFFF0000-SA|r: Send Always
 |CFFFF0000-Li|r: Limited Income 
 |CFFFF0000-NS|r: NO Saving 
 }
