@@ -3436,14 +3436,58 @@ endfunction
 function Reforged_BotIsPicker takes integer t returns boolean
 return t=='e000' or t=='e002' or t=='e004' or t=='e005' or t=='e006' or t=='e007'
 endfunction
-function Reforged_BotPick takes integer pid returns nothing
-local unit b=N[pid+1]
-if Reforged_HTI(2,pid)==2 and GetRandomInt(0,1)==0 then
-call IssueImmediateOrderById(b,'u00T')
-else
-call IssueImmediateOrderById(b,Reforged_HTI(8,GetRandomInt(0,Reforged_HTI(21,0)-1)))
+// does builder k (not Prophet: its units are random) have one of the proven core units?
+function Reforged_BotBuilderHasCore takes integer k returns boolean
+local integer c=0
+local integer i
+if Reforged_HTI(8,k)=='u00T' then
+return false
 endif
-set b=null
+loop
+exitwhen c>=Reforged_HTI(21,5)
+set i=Reforged_HTI(9,k)
+loop
+exitwhen i>Reforged_HTI(10,k)
+if Reforged_HTI(11,i)==Reforged_HTI(43,c) then
+return true
+endif
+set i=i+1
+endloop
+set c=c+1
+endloop
+return false
+endfunction
+// order the picker to become one of the builders it offers; Insane prefers builders with a core unit
+function Reforged_BotPick takes integer pid,unit picker returns nothing
+local player p=Player(pid)
+local integer k=0
+local integer n=0
+local integer nc=0
+local integer pick=-1
+local integer pickCore=-1
+loop
+exitwhen k>=Reforged_HTI(21,0)
+if GetPlayerTechMaxAllowed(p,Reforged_HTI(8,k))!=0 then
+set n=n+1
+if GetRandomInt(1,n)==1 then
+set pick=k
+endif
+if Reforged_BotBuilderHasCore(k) then
+set nc=nc+1
+if GetRandomInt(1,nc)==1 then
+set pickCore=k
+endif
+endif
+endif
+set k=k+1
+endloop
+if Reforged_HTI(2,pid)==2 and pickCore>=0 then
+set pick=pickCore
+endif
+if pick>=0 then
+call IssueImmediateOrderById(picker,Reforged_HTI(8,pick))
+endif
+call Reforged_HTSetI(42,pid,0)
 endfunction
 // ---- matchups: damage table HT(30, atk*8+def) in percent; next wave's types HT(31/32, level)
 function Reforged_BotMatchup takes integer unitAtk,integer unitDef returns integer
@@ -3946,7 +3990,16 @@ if N[pid+1]==null then
 return
 endif
 if Reforged_BotIsPicker(GetUnitTypeId(N[pid+1])) then
-call Reforged_BotPick(pid)
+call Reforged_BotPick(pid,N[pid+1])
+return
+endif
+if GetUnitTypeId(N[pid+1])==0 then
+// builder was removed by "Change Builder": a new picker (not stored in N) offers 2 builders
+if Reforged_BotFindUnit(p,'e005','e006')!=null then
+call Reforged_BotPick(pid,LoadUnitHandle(Reforged_HT,22,0))
+elseif Reforged_BotFindUnit(p,'e007','e000')!=null then
+call Reforged_BotPick(pid,LoadUnitHandle(Reforged_HT,22,0))
+endif
 return
 endif
 if Reforged_BotBuilderIndex(GetUnitTypeId(N[pid+1]))<0 then
@@ -3966,6 +4019,20 @@ return
 endif
 if lr then
 return
+endif
+// Insane, before level 1: no proven core unit with this builder -> Change Builder / Change Tower
+// (1st change is free, 2nd costs gold+lumber), at most 2 changes
+if d==2 and L==0 and GetUnitCurrentOrder(N[pid+1])==0 then
+if Reforged_HTI(42,pid)==0 then
+call Reforged_BotPickCore(pid)
+endif
+if Reforged_HTI(42,pid)<0 and Reforged_HTI(53,pid)<2 then
+if IssueImmediateOrderById(N[pid+1],'R00D') or IssueImmediateOrderById(N[pid+1],'R00G') then
+call Reforged_HTSetI(53,pid,Reforged_HTI(53,pid)+1)
+call Reforged_HTSetI(42,pid,0)
+return
+endif
+endif
 endif
 // new build phase: remember whether the last wave leaked
 if Reforged_HTI(6,pid)!=L then
