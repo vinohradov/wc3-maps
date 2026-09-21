@@ -3518,7 +3518,7 @@ C;X12;K"_"
 C;X16;K60
 C;X19;K"structure"
 C;X20;K"PathTextures\4x4SimpleSolid.tga"
-C;X22;K30
+C;X22;K45
 C;X23;K"buffer"
 C;X24;K15
 C;X26;K1
@@ -3533,7 +3533,7 @@ C;X12;K"_"
 C;X16;K60
 C;X19;K"structure"
 C;X20;K"PathTextures\4x4SimpleSolid.tga"
-C;X22;K135
+C;X22;K150
 C;X23;K"buffer"
 C;X24;K15
 C;X26;K1
