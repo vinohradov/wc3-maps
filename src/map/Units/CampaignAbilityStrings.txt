@@ -4743,7 +4743,7 @@ Order=roar
 Animnames=spell,slam
 Name=Battle Cry
 Tip=Battle Cry
-Ubertip=Bear gets pumped up! Adds 24% bonus damage and 7 armor for 25 seconds. Do him not AGR status (any attack him last!)
+Ubertip=Bear gets pumped up! Adds 24% bonus damage and 7 armor for 25 seconds.
 Hotkey=
 EditorSuffix=(Neutral Hostile)
 [B00H]
