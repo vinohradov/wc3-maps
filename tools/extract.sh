@@ -9,8 +9,8 @@ for f in "${FILES[@]}"; do
   mkdir -p "$ROOT/src/map/$(dirname "$rel")"
   cp "$tmp/$(basename "$rel")" "$ROOT/src/map/$rel"  # MPQEditor extracts flat
 done
-# war3map.j ships with CR-only line endings; convert to CRLF so it is readable/diffable
-tr '\r' '\n' < "$ROOT/src/map/war3map.j" | sed 's/$/\r/' > "$tmp/j"
+# war3map.j ships with CR-only line endings; store as LF (build.sh restores CR)
+tr '\r' '\n' < "$ROOT/src/map/war3map.j" > "$tmp/j"
 mv "$tmp/j" "$ROOT/src/map/war3map.j"
 rm -rf "$tmp"
 echo "Extracted ${#FILES[@]} files into src/map/"

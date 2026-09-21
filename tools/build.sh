@@ -7,9 +7,17 @@ if [ -x "$PJASS" ]; then
 fi
 mkdir -p "$ROOT/maps/build"
 cp "$ORIGINAL" "$OUT"
+stage="$(mktemp -d)"
 for f in "${FILES[@]}"; do
-  "$MPQ" add "$(w "$OUT")" "$(w "$ROOT/src/map/$(unix_path "$f")")" "$f" /c /auto
+  src="$ROOT/src/map/$(unix_path "$f")"
+  if [ "$f" = war3map.j ]; then
+    # src keeps LF; the map ships with CR-only line endings, so restore those
+    tr -d '\r' < "$src" | tr '\n' '\r' > "$stage/war3map.j"
+    src="$stage/war3map.j"
+  fi
+  "$MPQ" add "$(w "$OUT")" "$(w "$src")" "$f" /c /auto
 done
+rm -rf "$stage"
 "$MPQ" compact "$(w "$OUT")" >/dev/null 2>&1 || true
 ls -la "$OUT"
 cp "$OUT" "$WC3/Maps/Download/" && echo "Installed to $WC3/Maps/Download/$OUT_NAME"
