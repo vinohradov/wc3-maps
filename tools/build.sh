@@ -2,6 +2,7 @@
 # Build: copy the original map, replace edited files, check JASS, install into Maps\Download
 set -euo pipefail
 source "$(dirname "$0")/env.sh"
+(cd "$ROOT" && uv run -q python tools/lint_shadow.py)
 if [ -x "$PJASS" ]; then
   "$PJASS" "$ROOT/tools/jass/common.j" "$ROOT/tools/jass/Blizzard.j" "$ROOT/src/map/war3map.j"
 fi

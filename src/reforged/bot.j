@@ -52,11 +52,11 @@ function Reforged_BotTarget takes integer pid returns integer
 local integer n=L+1
 return R2I(Reforged_BotRatio[pid]*I2R(200+60*n+4*n*n))
 endfunction
-function Reforged_BotSpotFree takes real x,real y returns boolean
+function Reforged_BotSpotFree takes real posX,real posY returns boolean
 local group g=CreateGroup()
 local unit u
 local boolean free=true
-call GroupEnumUnitsInRange(g,x,y,100.,null)
+call GroupEnumUnitsInRange(g,posX,posY,100.,null)
 loop
 set u=FirstOfGroup(g)
 exitwhen u==null
@@ -88,21 +88,21 @@ local unit b=N[pid+1]
 local player p=Player(pid)
 local integer s
 local integer r
-local real x
-local real y
+local real posX
+local real posY
 loop
 set s=Reforged_BotSlot[pid]
 exitwhen s>=165
 set r=s/11
-set x=GetPlayerStartLocationX(p)+I2R(ModuloInteger(s,11)-5)*128.
+set posX=GetPlayerStartLocationX(p)+I2R(ModuloInteger(s,11)-5)*128.
 if ModuloInteger(r,2)==1 then
-set y=GetPlayerStartLocationY(p)+I2R((r+1)/2)*128.
+set posY=GetPlayerStartLocationY(p)+I2R((r+1)/2)*128.
 else
-set y=GetPlayerStartLocationY(p)-I2R(r/2)*128.
+set posY=GetPlayerStartLocationY(p)-I2R(r/2)*128.
 endif
 set Reforged_BotSlot[pid]=s+1
-if Reforged_BotSpotFree(x,y) then
-if IssueBuildOrderById(b,Reforged_BotUnit[i],x,y) then
+if Reforged_BotSpotFree(posX,posY) then
+if IssueBuildOrderById(b,Reforged_BotUnit[i],posX,posY) then
 set b=null
 return true
 endif
@@ -199,20 +199,20 @@ return pick
 endfunction
 // spend gold on army once; returns true if an order was given
 function Reforged_BotArmy takes integer pid,integer gold,boolean allowUpgrades returns boolean
-local integer bi=Reforged_BotChooseBuild(pid,gold)
-local integer bv=Reforged_BotPickValue
-local integer ui=-1
+local integer buildIdx=Reforged_BotChooseBuild(pid,gold)
+local integer buildVal=Reforged_BotPickValue
+local integer upIdx=-1
 local integer uv2=0
 local boolean idle=GetUnitCurrentOrder(N[pid+1])==0
 if allowUpgrades then
-set ui=Reforged_BotChooseUpgrade(pid,gold)
+set upIdx=Reforged_BotChooseUpgrade(pid,gold)
 set uv2=Reforged_BotPickValue
 endif
-if ui>=0 and (bi<0 or not idle or (Reforged_BotDiff[pid]==2 and uv2>=bv) or (Reforged_BotDiff[pid]!=2 and GetRandomInt(0,1)==0)) then
-return IssueImmediateOrderById(Reforged_BotUpUnit,Reforged_BotUpTo[ui])
+if upIdx>=0 and (buildIdx<0 or not idle or (Reforged_BotDiff[pid]==2 and uv2>=buildVal) or (Reforged_BotDiff[pid]!=2 and GetRandomInt(0,1)==0)) then
+return IssueImmediateOrderById(Reforged_BotUpUnit,Reforged_BotUpTo[upIdx])
 endif
-if bi>=0 and idle then
-return Reforged_BotTryBuild(pid,bi)
+if buildIdx>=0 and idle then
+return Reforged_BotTryBuild(pid,buildIdx)
 endif
 return false
 endfunction
