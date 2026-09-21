@@ -809,6 +809,7 @@ group YA=null
 force zA=null
 boolexpr ZA=null
 boolean Reforged_SendAlways=false
+boolean Reforged_BarracksSwapped=false
 endglobals
 function eN takes real xN returns nothing
 local real oN
@@ -6061,7 +6062,26 @@ endfunction
 function iG takes nothing returns boolean
 return(L>=$F)and(br==false)
 endfunction
+// Reforged: from level 20 the cheap Barracks (h05C) become Legendary Barracks (h9B0)
+function Reforged_IsOldBarracks takes nothing returns boolean
+return GetUnitTypeId(GetFilterUnit())=='h05C'
+endfunction
+function Reforged_ReplaceBarracks takes nothing returns nothing
+call ReplaceUnitBJ(GetEnumUnit(),'h9B0',bj_UNIT_STATE_METHOD_RELATIVE)
+endfunction
+function Reforged_SwapBarracks takes nothing returns nothing
+local group g=CreateGroup()
+set Reforged_BarracksSwapped=true
+call GroupEnumUnitsInRect(g,bj_mapInitialPlayableArea,Filter(function Reforged_IsOldBarracks))
+call ForGroup(g,function Reforged_ReplaceBarracks)
+call DestroyGroup(g)
+set g=null
+call DisplayTimedTextToForce(bj_FORCE_ALL_PLAYERS,15.,"|cffFFcc00Legendary Barracks|r are open: Pit Lord, Faceless One, Anub'arak, Nether Dragon, Eredar Warlock and Mannoroth can now be summoned.")
+endfunction
 function aG takes nothing returns nothing
+if L>=20 and not Reforged_BarracksSwapped then
+call Reforged_SwapBarracks()
+endif
 if(rG())then
 set Nr=true
 set bj_forLoopAIndex=1
