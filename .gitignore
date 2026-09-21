@@ -1,0 +1,7 @@
+# Map binaries are large — keep them out of git (originals live in maps/original, builds in maps/build)
+*.w3x
+*.w3m
+*.mpq
+maps/build/
+tools/bin/
+tools/jass/

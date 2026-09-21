@@ -1,0 +1,230 @@
+[I000]
+Name=Sword of Pwnage
+Tip=|cffFFcc00Sword of Pwnage|r
+Ubertip="An incredibly powerful sword given to a King to compensate for an empty team. Provides +150 damage, +30% attack speed, +10000 hit points, and +6 armor."
+Description="+150 attack, +30% attack speed, +10000hp, +6 armor."
+Art=ReplaceableTextures\CommandButtons\BTNINV_Sword_25.blp
+[I001]
+Name=Unkillable
+Tip=|cffFFcc00Unkillable|r
+Ubertip=This King is unkillable.|n|n+1000 hp regen|n+100% attack speed|n+1000 damage|n+100 armor
+Description=Unkillable
+Art=ReplaceableTextures\CommandButtons\BTNInvulnerable.blp
+[TWN1]
+Name=Town Hall or Great Hall or Tree of Life or Necropolis
+DependencyOr=htow,ogre,etol,unpl
+XPFactor=0
+[I002]
+Name=Tome of 400 hp
+Hotkey=A
+Tip=Purchase Tome of |cffffcc00A|rgility
+Ubertip="Permanently increases the Agility of the Hero by <AIam,DataA1> when used."
+Description=Permanently increases Agility.
+Art=ReplaceableTextures\CommandButtons\BTNTome.blp
+[oli2]
+Name=Orb of Lightning
+Hotkey=L
+Tip=Purchase Orb of |cffffcc00L|rightning
+Ubertip="Adds <AIll,DataA1> bonus damage to the attack of a Hero when carried. The Hero's attacks also become ranged when attacking air, and have a chance to dispel magic and slow the movement speed of the enemy for <AIlp,Dur1> seconds. |n|cffffcc00Deals <AIpg,DataC1> bonus damage to summoned units."
+Description=Attacks cause lightning damage.
+Buttonpos=0,2
+Requires=ofrt
+Art=ReplaceableTextures\CommandButtons\BTNOrbOfLightning.blp
+[TWN2]
+Name=Keep or Stronghold or Tree of Ages or Halls of the Dead
+DependencyOr=hkee,ostr,etoa,unp1
+XPFactor=0
+[I003]
+Name=Tome of 4 Damage
+Hotkey=A
+Tip=Purchase Tome of |cffffcc00A|rgility
+Ubertip="Permanently increases the Agility of the Hero by <AIam,DataA1> when used."
+Description=Permanently increases Agility.
+Art=ReplaceableTextures\CommandButtons\BTNTome.blp
+[TWN3]
+Name=Castle or Fortress or Tree of Eternity or Black Citadel
+DependencyOr=hcas,ofrt,etoe,unp2
+XPFactor=0
+[phea]
+Name=Potion of Healing
+Hotkey=P
+Tip=Purchase |cffffcc00P|rotion of Healing
+Ubertip="Heals <AIh1,DataA1> hit points when used."
+Description=Restores lost hit points.
+Requires=TWN2
+Buttonpos=0,1
+Art=ReplaceableTextures\CommandButtons\BTNPotionGreenSmall.blp
+[shea]
+Name=Scroll of Healing
+Hotkey=H
+Tip=Purchase Scroll of |cffffcc00H|realing
+Ubertip="Heals <AIha,DataA1> hit points to all friendly non-mechanical units around the Hero when used."
+Description=Restores hit points to nearby units.
+Requires=unp2
+Buttonpos=1,2
+Art=ReplaceableTextures\CommandButtons\BTNScrollOfTownPortal.blp
+[rnec]
+Name=Rod of Necromancy
+Hotkey=R
+Tip=Purchase |cffffcc00R|rod of Necromancy
+Ubertip="Creates two Skeleton Warriors from a corpse. |nContains <rnec,uses> charges."
+Description=Creates two Skeleton Warriors from a corpse.
+Art=ReplaceableTextures\CommandButtons\BTNRodOfNecromancy.blp
+[spre]
+Name=Staff of Preservation
+Hotkey=E
+Tip=Purchase Staff of Pr|cffffcc00e|rservation
+Ubertip="Teleports a target friendly unit to its highest level town hall."
+Description=Teleports a target unit home.
+Buttonpos=3,1
+Requires=etoa
+Art=ReplaceableTextures\CommandButtons\BTNStaffOfPreservation.blp
+[sreg]
+Name=Scroll of Regeneration
+Hotkey=R
+Tip=Purchase Scroll of |cffffcc00R|regeneration
+Ubertip="|cff87ceebNon-Combat Consumable|r|nRegenerates the hit points of all friendly non-mechanical units in an area around your Hero by <AIsl,DataA1> over <AIsl,Dur1> seconds when used."
+Description=Regenerates the health of nearby units.
+Buttonpos=0,0
+Art=ReplaceableTextures\CommandButtons\BTNScrollOfRegenerationGreen.blp
+[tgrh]
+Name=Tiny Great Hall
+Hotkey=G
+Tip=Purchase Tiny |cffffcc00G|rreat Hall
+Ubertip="Creates a Great Hall at a target location. Human, Night Elf, and Undead players will get their racial equivalent town hall."
+Description="Creates a Great Hall."
+Buttonpos=1,2
+Requires=ofrt
+Art=ReplaceableTextures\CommandButtons\BTNGreathall.blp
+[mcri]
+Name=Mechanical Critter
+Hotkey=E
+Tip=Purchase M|cffffcc00e|rchanical Critter
+Ubertip="Creates a player-controlled critter that can be used to scout enemies."
+Description=Creates a mechanical critter.
+ButtonPos=2,0
+Art=ReplaceableTextures\CommandButtons\BTNMechanicalCritter.blp
+[plcl]
+Name=Lesser Clarity Potion
+Hotkey=C
+Tip=Purchase Lesser |cffffcc00C|rlarity Potion
+Ubertip="|cff87ceebNon-Combat Consumable|r|nRegenerates the Hero's mana by <AIpl,DataB1> over <AIpl,Dur1> seconds when used."
+Description=Regenerates mana over time.
+Buttonpos=1,0
+Art=ReplaceableTextures\CommandButtons\BTNLesserClarityPotion.blp
+[skul]
+Name=Sacrificial Skull
+Hotkey=K
+Tip=Purchase Sacrificial S|cffffcc00k|rull
+Ubertip="Creates an area of Blight at a target location."
+Description=Creates Blight at a target location.
+ButtonPos=2,0
+Requires=ugrv
+Art=ReplaceableTextures\CommandButtons\BTNSacrificialSkull.blp
+[pman]
+Name=Potion of Mana
+Hotkey=M
+Tip=Purchase Potion of |cffffcc00M|rana
+Ubertip="Restores <AIm1,DataA1> mana when used."
+Description=Restores lost mana.
+Requires=TWN2
+Buttonpos=1,1
+Art=ReplaceableTextures\CommandButtons\BTNPotionBlueSmall.blp
+[ssan]
+Name=Staff of Sanctuary
+Hotkey=N
+Tip=Purchase Staff of Sa|cffffcc00n|rctuary
+Ubertip="Teleports a target unit to your highest level town hall, stunning the unit and regenerating <ANsa,DataE1> hit points per second. Lasts until the unit is fully healed."
+Description=Heals and teleports a unit.
+Art=ReplaceableTextures\CommandButtons\BTNStaffOfSanctuary.blp
+Requires=hcas
+Buttonpos=1,2
+[oven]
+Name=Orb of Venom
+Hotkey=V
+Tip=Purchase Orb of |cffffcc00V|renom
+Ubertip="Adds <AIpb,DataA1> bonus damage to the attack of a Hero when carried. The Hero's attacks also become ranged when attacking air and poison enemy units for <Apo2,Dur1> seconds."
+Description=Attacks cause poison damage.
+Buttonpos=0,2
+Requires=etoe
+Art=ReplaceableTextures\CommandButtons\BTNOrbOfVenom.blp
+[moon]
+Name=Moonstone
+Hotkey=N
+Tip=Purchase Moo|cffffcc00n|rstone
+Ubertip="Causes an eclipse that blocks out the sun and creates an artificial night. |nLasts <AIct,Dur1> seconds."
+Description=Makes it night time.
+Buttonpos=0,0
+Art=ReplaceableTextures\CommandButtons\BTNMoonStone.blp
+[stwp]
+Name=Scroll of Town Portal
+Hotkey=T
+Tip=Purchase Scroll of |cffffcc00T|rown Portal
+Ubertip="Teleports the Hero and any of its nearby troops to a target friendly town hall."
+Description=Transports troops to friendly town hall.
+Requires=TWN2
+Buttonpos=2,1
+Art=ReplaceableTextures\CommandButtons\BTNScrollUber.blp
+[ofir]
+Name=Orb of Fire
+Hotkey=F
+Tip=Purchase Orb of |cffffcc00F|rire
+Ubertip="Adds <AIfb,DataA1> bonus fire damage to the attack of a Hero when carried. The Hero's attacks also become ranged when attacking air and do splash damage to nearby enemy units."
+Description=Attacks also do fire damage.
+Buttonpos=0,2
+Requires=hcas
+Art=ReplaceableTextures\CommandButtons\BTNOrbOfFire.blp
+[ocor]
+Name=Orb of Corruption
+Hotkey=B
+Tip=Purchase Or|cffffcc00b|r of Corruption
+Ubertip="Adds <AIcb,DataA1> bonus damage to the attack of a Hero when carried. The Hero's attacks also become ranged when attacking air and reduce the armor of enemy units for <AIcb,Dur1> seconds."
+Description=Attacks reduce armor.
+Buttonpos=0,2
+Requires=unp2
+Art=ReplaceableTextures\CommandButtons\BTNOrbOfCorruption.blp
+[shas]
+Name=Scroll of Speed
+Hotkey=S
+Tip=Purchase Scroll of |cffffcc00S|rpeed
+Ubertip="Increases the movement speed of the Hero and nearby allied units to the maximum movement speed. |nLasts <AIsa,Dur1> seconds."
+Description=Increases movement speed of units.
+Buttonpos=1,0
+Art=ReplaceableTextures\CommandButtons\BTNScrollOfHaste.blp
+[pams]
+Name=Anti-magic Potion
+Hotkey=A
+Tip=Purchase |cffffcc00A|rnti-magic Potion
+Ubertip="Gives the Hero immunity to magical spells for <AIxs,Dur1> seconds."
+Description=Renders Hero immune to magic.
+Requires=etoe
+Buttonpos=1,2
+Art=ReplaceableTextures\CommandButtons\BTNSnazzyPotion.blp
+[tsct]
+Name=Ivory Tower
+Hotkey=V
+Tip=Purchase I|cffffcc00v|rory Tower
+Ubertip="Creates a Scout Tower at a target location."
+Description="Creates a Scout Tower."
+Buttonpos=3,1
+Requires=hkee
+Art=ReplaceableTextures\CommandButtons\BTNHumanWatchTower.blp
+[TALT]
+Name=An Altar
+DependencyOr=halt,oalt,eate,uaod
+[dust]
+Name=Dust of Appearance
+Hotkey=D
+Tip=Purchase |cffffcc00D|rust of Appearance
+Ubertip="Reveals enemy invisible units in an area around the Hero. |nContains <dust,uses> charges. |nLasts <AItb,Dur1> seconds."
+Description=Reveals invisible units.
+Art=ReplaceableTextures\CommandButtons\BTNDustOfAppearance.blp
+Buttonpos=3,0
+[hslv]
+Name=Healing Salve
+Hotkey=H
+Tip=Purchase |cffffcc00H|realing Salve
+Ubertip="|cff87ceebNon-Combat Consumable|r|nRegenerates a target unit's hit points by <AIrl,DataA1> over <AIrl,Dur1> seconds when used. |nContains <hslv,uses> charges."
+Description=Regenerates lost hit points over time.
+Buttonpos=0,0
+Art=ReplaceableTextures\CommandButtons\BTNHealingSalve.blp
