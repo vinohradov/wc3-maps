@@ -7,6 +7,9 @@ income ("points") ~ 5% of lumber cost.
 """
 from objlib import Slk, Txt
 
+# how this map displays internal armor types in tooltips ("large" is shown as Heavy, "normal" as Fortified)
+ARMOR_NAME = {"small": "Light", "medium": "Medium", "large": "Heavy", "normal": "Fortified", "fort": "Fortified",
+              "none": "Unarmored", "hero": "Hero", "divine": "Divine"}
 UNIT_SLKS = ["UnitBalance.slk", "UnitData.slk", "UnitWeapons.slk", "UnitAbilities.slk", "unitUI.slk"]
 ICON = "ReplaceableTextures\\CommandButtons\\"
 AURA_TARGETS_ALLY = "air,ground,friend,self,vuln,invu"
@@ -77,6 +80,7 @@ LOCKED_LEGENDARY = "h9B2"  # h9B0 twin selling max-stock-0 copies (h9E0..)
 
 # ---------------------------------------------------------------- Challenge (sold in each player's Town, h023)
 CHALLENGE = "h9C0"  # dummy "unit" bought from the Town; the script removes it and toggles the challenge
+CHALLENGE_ACTIVE = "h9C1"  # same, shown instead of h9C0 while a challenge is queued (click = cancel)
 CHAMPION_AURAS = {  # one is picked at random for each Champion
     "A9B0": ("AHad", "Champion: Shatter", "BTNHelmutPurple",
              {"Area1": 700, "DataA1": -3, "targs1": AURA_TARGETS_ENEMY}, "Nearby defenders have 3 less armor."),
@@ -131,7 +135,7 @@ def main():
         for k, v in {"Name": name, "Hotkey": hotkey, "Buttonpos": pos, "Requires": "",
                      "Tip": f"Summon {name} (|cffFFcc00{hotkey}|r)",
                      "Ubertip": f'"{flavour}|n|n|cffFFcc00+{income} income|r|n|cffCCCCCC{atk}, '
-                                f'{atype.capitalize()} damage, {dtype.capitalize()} armor.|r{abil_lines}"',
+                                f'{atype.capitalize()} damage, {ARMOR_NAME[dtype]} armor.|r{abil_lines}"',
                      "Art": ICON + icon + ".blp", "Missileart": missile or ""}.items():
             func.set(uid, k, v)
 
@@ -163,6 +167,9 @@ def main():
             func.clone(src, lid)
             t0, t1 = func._section(src)
             tip = next((l.split("=", 1)[1] for l in func.lines[t0:t1] if l.startswith("Tip=")), "")
+            uber = next((l.split("=", 1)[1] for l in func.lines[t0:t1] if l.startswith("Ubertip=")), None)
+            if uber is not None:
+                func.set(lid, "Ubertip", uber)
             func.set(lid, "Tip", tip.replace(" |cffFF0000(locked this level)|r", "") +
                      " |cffFF0000(locked this level)|r")
         for s in slks.values():
@@ -188,7 +195,19 @@ def main():
                             'Not available for levels 10, 20, 30."',
                  "Art": ICON + "BTNHelmutPurple.blp"}.items():
         func.set(CHALLENGE, k, v)
-    func.set("h023", "Sellunits", "u008,u009,u00A," + CHALLENGE)
+    for s in slks.values():
+        if CHALLENGE in s.rows:
+            s.clone(CHALLENGE, CHALLENGE_ACTIVE)
+    slks["unitUI.slk"].set(CHALLENGE_ACTIVE, "name", f"reforged_{CHALLENGE_ACTIVE}")
+    func.clone(CHALLENGE, CHALLENGE_ACTIVE)
+    for k, v in {"Name": "Challenge: ACTIVE", "Buttonpos": "3,1",
+                 "Tip": "|cff00ff00Challenge ACTIVE|r - click to |cffFF0000cancel|r",
+                 "Ubertip": '"Your next wave will contain a |cffFF4040Champion|r (10x HP, aura, marked with a red ring).'
+                            '|n|nKill it for |cffFFcc00(wave+1) x 15|r gold +|cffFFcc0010|r per streak.'
+                            '|n|nClick to cancel the challenge."',
+                 "Art": ICON + "BTNSacrifice.blp"}.items():
+        func.set(CHALLENGE_ACTIVE, k, v)
+    func.set("h023", "Sellunits", "u008,u009,u00A," + CHALLENGE + "," + CHALLENGE_ACTIVE)
 
     ad, astr = Slk("AbilityData.slk"), Txt("CampaignAbilityStrings.txt")
     for aid, (tpl, name, icon, fields, tip) in CHAMPION_AURAS.items():

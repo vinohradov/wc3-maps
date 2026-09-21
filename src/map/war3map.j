@@ -816,6 +816,8 @@ integer array Reforged_ChStreak
 integer array Reforged_ChSeenWave
 integer array Reforged_HpAbil
 integer array Reforged_ChAura
+effect array Reforged_ChFxRing
+effect array Reforged_ChFxMark
 boolean array Reforged_IsBot
 boolean Reforged_HasBots=false
 integer array Reforged_BotDiff
@@ -3086,12 +3088,33 @@ set step=step/2
 set i=i-1
 endloop
 endfunction
+// Town shows "Challenge" or "Challenge: ACTIVE (cancel)" depending on the player's state
+function Reforged_ChSetButton takes integer pid,boolean active returns nothing
+call SetPlayerUnitAvailableBJ('h9C0',not active,Player(pid))
+call SetPlayerUnitAvailableBJ('h9C1',active,Player(pid))
+endfunction
+function Reforged_ChClearFx takes integer pid returns nothing
+if Reforged_ChFxRing[pid]!=null then
+call DestroyEffect(Reforged_ChFxRing[pid])
+set Reforged_ChFxRing[pid]=null
+endif
+if Reforged_ChFxMark[pid]!=null then
+call DestroyEffect(Reforged_ChFxMark[pid])
+set Reforged_ChFxMark[pid]=null
+endif
+endfunction
 function Reforged_MakeChampion takes unit u,integer pid returns nothing
 local player p=Player(pid)
 call Reforged_AddMaxLife(u,R2I(GetUnitState(u,UNIT_STATE_MAX_LIFE)*9.))
 call SetUnitState(u,UNIT_STATE_LIFE,GetUnitState(u,UNIT_STATE_MAX_LIFE))
-call SetUnitScale(u,1.4,1.4,1.4)
-call SetUnitVertexColor(u,255,140,140,255)
+call SetUnitScale(u,1.6,1.6,1.6)
+call SetUnitVertexColor(u,255,110,110,255)
+call Reforged_ChClearFx(pid)
+set Reforged_ChFxRing[pid]=AddSpecialEffectTarget("Abilities\\Spells\\Orc\\CommandAura\\CommandAura.mdl",u,"origin")
+set Reforged_ChFxMark[pid]=AddSpecialEffectTarget("Abilities\\Spells\\Other\\TalkToMe\\TalkToMe.mdl",u,"overhead")
+call PingMinimapForPlayer(p,GetUnitX(u),GetUnitY(u),4.)
+call DisplayTimedTextToPlayer(p,0,0,10.,"|cffFF4040Your Champion is here|r (red ring, \"!\" above it). Kill it before it leaks!")
+call Reforged_ChSetButton(pid,false)
 call UnitAddAbility(u,Reforged_ChAura[GetRandomInt(0,2)])
 set Reforged_ChUnit[pid]=u
 call DisplayTimedTextToForce(bj_FORCE_ALL_PLAYERS,8.,B[pid+1]+GetPlayerName(p)+"|r's |cffFF4040Champion|r has entered the arena! Reward: |cffFFcc00"+I2S((L+1)*15+10*Reforged_ChStreak[pid])+"|r gold")
@@ -3106,6 +3129,7 @@ set Reforged_ChSeenWave[pid]=L
 if Reforged_ChUnit[pid]!=null then
 // last champion was never killed (leaked)
 set Reforged_ChUnit[pid]=null
+call Reforged_ChClearFx(pid)
 set Reforged_ChStreak[pid]=0
 endif
 if Reforged_ChWave[pid]==L then
@@ -3123,18 +3147,20 @@ local integer wave=L+1
 call RemoveUnit(sold)
 if Reforged_ChWave[pid]==wave then
 set Reforged_ChWave[pid]=0
+call Reforged_ChSetButton(pid,false)
 call DisplayTimedTextToPlayer(p,0,0,7.,"Challenge for level "+I2S(wave)+" |cffFF0000cancelled|r.")
 elseif wave==10 or wave==20 or wave==30 then
 call DisplayTimedTextToPlayer(p,0,0,7.,"|cffFF0000Level "+I2S(wave)+" can't be challenged.|r")
 else
 set Reforged_ChWave[pid]=wave
+call Reforged_ChSetButton(pid,true)
 call DisplayTimedTextToForce(bj_FORCE_ALL_PLAYERS,8.,B[pid+1]+GetPlayerName(p)+"|r challenges level |cffFFcc00"+I2S(wave)+"|r! (streak "+I2S(Reforged_ChStreak[pid])+")")
 endif
 set sold=null
 set p=null
 endfunction
 function Reforged_IsChallengeSale takes nothing returns boolean
-return GetUnitTypeId(GetSoldUnit())=='h9C0'
+return GetUnitTypeId(GetSoldUnit())=='h9C0' or GetUnitTypeId(GetSoldUnit())=='h9C1'
 endfunction
 function Reforged_OnChampionDeath takes nothing returns nothing
 local unit u=GetTriggerUnit()
@@ -3147,6 +3173,7 @@ exitwhen pid>7
 if Reforged_ChUnit[pid]==u then
 set p=Player(pid)
 set Reforged_ChUnit[pid]=null
+call Reforged_ChClearFx(pid)
 if k!=null and GetPlayerId(GetOwningPlayer(k))<8 then
 set gold=(L+1)*15+10*Reforged_ChStreak[pid]
 call AdjustPlayerStateBJ(gold,p,PLAYER_STATE_RESOURCE_GOLD)
@@ -3176,6 +3203,12 @@ endloop
 set Reforged_ChAura[0]='A9B0'
 set Reforged_ChAura[1]='A9B1'
 set Reforged_ChAura[2]='A9B2'
+set i=0
+loop
+exitwhen i>7
+call Reforged_ChSetButton(i,false)
+set i=i+1
+endloop
 call TriggerRegisterAnyUnitEventBJ(t,EVENT_PLAYER_UNIT_SELL)
 call TriggerAddCondition(t,Condition(function Reforged_IsChallengeSale))
 call TriggerAddAction(t,function Reforged_OnChallengeBought)
