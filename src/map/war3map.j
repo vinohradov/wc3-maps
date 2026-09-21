@@ -3269,7 +3269,7 @@ if Reforged_ChUnit[pid]==u then
 set p=Player(pid)
 set Reforged_ChUnit[pid]=null
 call Reforged_ChClearFx(pid)
-if k!=null and GetPlayerId(GetOwningPlayer(k))<8 then
+if k!=null and k!=eA and k!=XA then
 set gold=(L+1)*15+10*Reforged_ChStreak[pid]
 call AdjustPlayerStateBJ(gold,p,PLAYER_STATE_RESOURCE_GOLD)
 // keep the map's anti-cheat gold ledger in sync
