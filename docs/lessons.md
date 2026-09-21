@@ -42,3 +42,6 @@ Crash reports: elevated war3 -> `C:\Program Files\Warcraft III\Errors`; normal w
 - Full mechanics map for bots (player init, build areas, economy, W3MMD): see git history of this file's
   sibling notes and `src/reforged/bot.j` header; key globals: `L` level, `Vv` wave running, `lr` arena,
   `N[]` builder, `Vr[]` adv. barracks, `Bo[]` army value, `Pe[]` income, `Qx[]` wisps, `co[]` leaks, `ox`/`xx` forces.
+- The original's debug system (-debug/-gold/-level...) is stripped: triggers HI/CI are declared but never
+  created. Our replacement lives in `src/reforged/debug.j` (works only in test mode `Lx` = one human; the map's
+  anti-cheat conditions are gated by `Lx==false`, so cheats can set resources directly).
