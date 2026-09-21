@@ -14,6 +14,10 @@ for f in "${FILES[@]}"; do
     # src keeps LF; the map ships with CR-only line endings, so restore those
     tr -d '\r' < "$src" | tr '\n' '\r' > "$stage/war3map.j"
     src="$stage/war3map.j"
+  elif [ "$f" = war3map.wts ]; then
+    # the game crashes on the map list if the strings file isn't CRLF (Git Bash sed -i strips CRs)
+    tr -d '\r' < "$src" | sed 's/$/\r/' > "$stage/war3map.wts"
+    src="$stage/war3map.wts"
   fi
   "$MPQ" add "$(w "$OUT")" "$(w "$src")" "$f" /c /auto
 done
