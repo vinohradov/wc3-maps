@@ -18,6 +18,7 @@ models/textures (113 `File000xxxxx` entries) are preserved untouched.
 - `tools/slk_set.py <file> <id> <column> <value>` — change one SLK cell
 - `tools/reforged_objects.py` — (re)generates all new objects (Legendary Barracks, summons, auras, Challenge); idempotent
 - `tools/objmod.py <file.w3a>` — dump binary object-mod files
+- `tools/gen_bot.py` — regenerates the bot data table and injects `src/reforged/bot.j` into war3map.j (run after changing units or bot.j)
 - Script additions in `war3map.j` are prefixed `Reforged_`.
 
 ## Reforged changes (vs. original v3.9f)
@@ -27,6 +28,7 @@ models/textures (113 `File000xxxxx` entries) are preserved untouched.
 - Waves 6, 15, 18, 19, 21, 22, 23, 25, 26 stronger
 - Summons blocked on levels 1/10/20/30 unless mode `-sa`
 - Legendary Barracks from level 20: Pit Lord, Faceless One, Anub'arak, Nether Dragon, Eredar Warlock, Mannoroth
+- Bots: lobby Computer slots (Easy/Normal/Insane) play like humans; games with bots send no win/loss stats
 - Challenge (Town shop): Champion creep with 10x HP + aura, reward (wave+1)*15 + 10*streak
 - Note: the map has an anti-cheat gold ledger `Br[]` — any gold given by script must be added to it
 
