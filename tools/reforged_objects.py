@@ -73,6 +73,19 @@ SUMMONS = [
 
 BARRACKS = "h9B0"
 
+# ---------------------------------------------------------------- Challenge (sold in each player's Town, h023)
+CHALLENGE = "h9C0"  # dummy "unit" bought from the Town; the script removes it and toggles the challenge
+CHAMPION_AURAS = {  # one is picked at random for each Champion
+    "A9B0": ("AHad", "Champion: Shatter", "BTNHelmutPurple",
+             {"Area1": 700, "DataA1": -3, "targs1": AURA_TARGETS_ENEMY}, "Nearby defenders have 3 less armor."),
+    "A9B1": ("AOae", "Champion: Frenzy", "BTNHelmutPurple", {"Area1": 700, "DataA1": 0.2, "DataB1": 0.2},
+             "Nearby attackers move and attack 20% faster."),
+    "A9B2": ("AEah", "Champion: Spikes", "BTNHelmutPurple", {"Area1": 700, "DataA1": 0.25},
+             "Nearby attackers return 25% of melee damage taken."),
+}
+# hidden +max HP abilities in binary steps (A9C0 = +100 ... A9C9 = +51200); the script adds a subset
+HP_ABILITIES = {f"A9C{i}": 100 * 2 ** i for i in range(10)}
+
 
 def ability_text(aid):
     return ABILITIES[aid][1]
@@ -131,10 +144,45 @@ def main():
     func.set(BARRACKS, "Name", "Legendary Barracks")
     func.set(BARRACKS, "Art", ICON + "BTNMannoroth.blp")
     func.set(BARRACKS, "Sellunits", ",".join(s[0] for s in SUMMONS))
+    # Challenge: clone of the King HP upgrade u008 (type "undead", so the summon purchase trigger ignores it)
+    for s in slks.values():
+        if "u008" in s.rows:
+            s.clone("u008", CHALLENGE)
+    for k, v in {"lumbercost": 0, "stockMax": 1, "stockRegen": 1}.items():
+        slks["UnitBalance.slk"].set(CHALLENGE, k, v)
+    slks["unitUI.slk"].set(CHALLENGE, "name", f"reforged_{CHALLENGE}")
+    func.clone("u008", CHALLENGE)
+    for k, v in {"Name": "Challenge", "Hotkey": "C", "Buttonpos": "3,0",
+                 "Tip": "|cffFFcc00C|rhallenge the next wave",
+                 "Ubertip": '"One creep of your next wave becomes a Champion: 10x HP, bigger, with a random aura.'
+                            '|n|nKill it for |cffFFcc00(wave+1) x 15|r gold +|cffFFcc0010|r per streak. '
+                            'A leak resets the streak.|n|nBuy again before the wave to cancel. '
+                            'Not available for levels 10, 20, 30."',
+                 "Art": ICON + "BTNHelmutPurple.blp"}.items():
+        func.set(CHALLENGE, k, v)
+    func.set("h023", "Sellunits", "u008,u009,u00A," + CHALLENGE)
+
+    ad, astr = Slk("AbilityData.slk"), Txt("CampaignAbilityStrings.txt")
+    for aid, (tpl, name, icon, fields, tip) in CHAMPION_AURAS.items():
+        ad.clone(tpl, aid)
+        ad.set(aid, "levels", 1)
+        for k, v in fields.items():
+            ad.set(aid, k, v)
+        astr.clone(tpl, aid)
+        for k, v in {"Name": name, "Tip": name, "Ubertip": f'"{tip}"', "Art": ICON + icon + ".blp"}.items():
+            astr.set(aid, k, v)
+    for aid, amount in HP_ABILITIES.items():
+        ad.clone("AIl2", aid)  # AIml: max life bonus while the unit has the ability
+        ad.set(aid, "levels", 1)
+        ad.set(aid, "DataA1", amount)
+    ad.save()
+    astr.save()
+
     for s in slks.values():
         s.save()
     func.save()
-    print("ok:", ", ".join(ABILITIES), "|", ", ".join(s[0] for s in SUMMONS), "|", BARRACKS)
+    print("ok:", ", ".join(ABILITIES), "|", ", ".join(s[0] for s in SUMMONS), "|", BARRACKS, CHALLENGE,
+          "|", ", ".join(CHAMPION_AURAS), ", ".join(HP_ABILITIES))
 
 
 if __name__ == "__main__":

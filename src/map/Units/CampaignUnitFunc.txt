@@ -1274,7 +1274,7 @@ LoopingSoundFadeIn=512
 LoopingSoundFadeOut=512
 Specialart=Objects\Spawnmodels\Human\HCancelDeath\HCancelDeath.mdl
 Trains=e003
-Sellunits=u008,u009,u00A
+Sellunits=u008,u009,u00A,h9C0
 [A033]
 Name=Mindwarp
 Tip=Mindwarp
@@ -13819,3 +13819,10 @@ LoopingSoundFadeIn=512
 LoopingSoundFadeOut=512
 Specialart=Objects\Spawnmodels\Human\HCancelDeath\HCancelDeath.mdl
 Sellunits=h9A0,h9A1,h9A2,h9A3,h9A4,h9A5
+[h9C0]
+Name=Challenge
+Tip=|cffFFcc00C|rhallenge the next wave
+Ubertip="One creep of your next wave becomes a Champion: 10x HP, bigger, with a random aura.|n|nKill it for |cffFFcc00(wave+1) x 15|r gold +|cffFFcc0010|r per streak. A leak resets the streak.|n|nBuy again before the wave to cancel. Not available for levels 10, 20, 30."
+Art=ReplaceableTextures\CommandButtons\BTNHelmutPurple.blp
+Hotkey=C
+Buttonpos=3,0

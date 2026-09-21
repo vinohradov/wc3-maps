@@ -49,7 +49,7 @@ P;EArial Cyr;M200
 P;EArial Cyr;M200
 P;EArial Cyr;M200
 F;P0;DG0G8;M255
-B;Y988;X31;D0 0 987 30
+B;Y989;X31;D0 0 988 30
 O;D;V0;K47;G100 0.001
 F;M270;R977
 C;Y1;X1;K"unitID"
@@ -16019,6 +16019,23 @@ C;X12;K"_"
 C;X16;K60
 C;X19;K"structure"
 C;X20;K"PathTextures\4x4SimpleSolid.tga"
+C;X22;K100
+C;X23;K"_"
+C;X26;K1
+C;Y989;X1;K"h9C0"
+C;X4;K"other"
+C;X5;K1
+C;X6;K1
+C;X7;K1
+C;X9;K3
+C;X11;K1
+C;X12;K"hover"
+C;X13;K30
+C;X15;K0.6
+C;X16;K61
+C;X17;K3
+C;X19;K"ground"
+C;X20;K"_"
 C;X22;K100
 C;X23;K"_"
 C;X26;K1

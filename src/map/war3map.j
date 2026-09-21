@@ -810,6 +810,12 @@ force zA=null
 boolexpr ZA=null
 boolean Reforged_SendAlways=false
 boolean Reforged_BarracksSwapped=false
+integer array Reforged_ChWave
+unit array Reforged_ChUnit
+integer array Reforged_ChStreak
+integer array Reforged_ChSeenWave
+integer array Reforged_HpAbil
+integer array Reforged_ChAura
 endglobals
 function eN takes real xN returns nothing
 local real oN
@@ -1505,6 +1511,120 @@ set p=Player(9)
 set XA=CreateUnit(p,'h00K',4545,-3260,270)
 set u=CreateUnit(p,'u013',-295,-1445,300)
 endfunction
+// ===== Reforged: Challenge =====
+// Buy "Challenge" (h9C0) in your Town: the first creep of your next wave spawns as a Champion
+// (10x HP, 1.4x size, random aura). Killing it pays (wave+1)*15 + 10*streak gold; a leak resets the streak.
+function Reforged_AddMaxLife takes unit u,integer amount returns nothing
+local integer i=9
+local integer step=51200
+loop
+exitwhen i<0
+if amount>=step then
+call UnitAddAbility(u,Reforged_HpAbil[i])
+set amount=amount-step
+endif
+set step=step/2
+set i=i-1
+endloop
+endfunction
+function Reforged_MakeChampion takes unit u,integer pid returns nothing
+local player p=Player(pid)
+call Reforged_AddMaxLife(u,R2I(GetUnitState(u,UNIT_STATE_MAX_LIFE)*9.))
+call SetUnitState(u,UNIT_STATE_LIFE,GetUnitState(u,UNIT_STATE_MAX_LIFE))
+call SetUnitScale(u,1.4,1.4,1.4)
+call SetUnitVertexColor(u,255,140,140,255)
+call UnitAddAbility(u,Reforged_ChAura[GetRandomInt(0,2)])
+set Reforged_ChUnit[pid]=u
+call DisplayTimedTextToForce(bj_FORCE_ALL_PLAYERS,8.,B[pid+1]+GetPlayerName(p)+"|r's |cffFF4040Champion|r has entered the arena! Reward: |cffFFcc00"+I2S((L+1)*15+10*Reforged_ChStreak[pid])+"|r gold")
+set p=null
+endfunction
+// called by the wave spawner for every creep; lane = player id + 1
+function Reforged_OnCreepSpawn takes unit u,integer lane returns nothing
+local integer pid=lane-1
+if Reforged_ChSeenWave[pid]!=L then
+// first creep of this wave in this lane
+set Reforged_ChSeenWave[pid]=L
+if Reforged_ChUnit[pid]!=null then
+// last champion was never killed (leaked)
+set Reforged_ChUnit[pid]=null
+set Reforged_ChStreak[pid]=0
+endif
+if Reforged_ChWave[pid]==L then
+call Reforged_MakeChampion(u,pid)
+else
+set Reforged_ChStreak[pid]=0
+endif
+endif
+endfunction
+function Reforged_OnChallengeBought takes nothing returns nothing
+local unit sold=GetSoldUnit()
+local player p=GetOwningPlayer(sold)
+local integer pid=GetPlayerId(p)
+local integer w=L+1
+call RemoveUnit(sold)
+if Reforged_ChWave[pid]==w then
+set Reforged_ChWave[pid]=0
+call DisplayTimedTextToPlayer(p,0,0,7.,"Challenge for level "+I2S(w)+" |cffFF0000cancelled|r.")
+elseif w==10 or w==20 or w==30 then
+call DisplayTimedTextToPlayer(p,0,0,7.,"|cffFF0000Level "+I2S(w)+" can't be challenged.|r")
+else
+set Reforged_ChWave[pid]=w
+call DisplayTimedTextToForce(bj_FORCE_ALL_PLAYERS,8.,B[pid+1]+GetPlayerName(p)+"|r challenges level |cffFFcc00"+I2S(w)+"|r! (streak "+I2S(Reforged_ChStreak[pid])+")")
+endif
+set sold=null
+set p=null
+endfunction
+function Reforged_IsChallengeSale takes nothing returns boolean
+return GetUnitTypeId(GetSoldUnit())=='h9C0'
+endfunction
+function Reforged_OnChampionDeath takes nothing returns nothing
+local unit u=GetTriggerUnit()
+local unit k=GetKillingUnit()
+local integer pid=0
+local integer gold
+local player p
+loop
+exitwhen pid>7
+if Reforged_ChUnit[pid]==u then
+set p=Player(pid)
+set Reforged_ChUnit[pid]=null
+if k!=null and GetPlayerId(GetOwningPlayer(k))<8 then
+set gold=(L+1)*15+10*Reforged_ChStreak[pid]
+call AdjustPlayerStateBJ(gold,p,PLAYER_STATE_RESOURCE_GOLD)
+// keep the map's anti-cheat gold ledger in sync
+set Br[pid+1]=Br[pid+1]+gold
+set Reforged_ChStreak[pid]=Reforged_ChStreak[pid]+1
+call DisplayTimedTextToForce(bj_FORCE_ALL_PLAYERS,8.,B[pid+1]+GetPlayerName(p)+"|r slew their |cffFF4040Champion|r: |cffFFcc00+"+I2S(gold)+"|r gold (streak "+I2S(Reforged_ChStreak[pid])+")")
+else
+set Reforged_ChStreak[pid]=0
+call DisplayTimedTextToForce(bj_FORCE_ALL_PLAYERS,8.,B[pid+1]+GetPlayerName(p)+"|r's |cffFF4040Champion|r got through. Streak lost.")
+endif
+set p=null
+endif
+set pid=pid+1
+endloop
+set u=null
+set k=null
+endfunction
+function Reforged_InitChallenge takes nothing returns nothing
+local trigger t=CreateTrigger()
+local integer i=0
+loop
+exitwhen i>9
+set Reforged_HpAbil[i]='A9C0'+i
+set i=i+1
+endloop
+set Reforged_ChAura[0]='A9B0'
+set Reforged_ChAura[1]='A9B1'
+set Reforged_ChAura[2]='A9B2'
+call TriggerRegisterAnyUnitEventBJ(t,EVENT_PLAYER_UNIT_SELL)
+call TriggerAddCondition(t,Condition(function Reforged_IsChallengeSale))
+call TriggerAddAction(t,function Reforged_OnChallengeBought)
+set t=CreateTrigger()
+call TriggerRegisterAnyUnitEventBJ(t,EVENT_PLAYER_UNIT_DEATH)
+call TriggerAddAction(t,function Reforged_OnChampionDeath)
+set t=null
+endfunction
 function Xb takes nothing returns nothing
 local timer t=GetExpiredTimer()
 local integer Ob=Fv[L]
@@ -1522,6 +1642,7 @@ set r=ui
 set p=Location(GetRandomReal(GetRectMinX(r),GetRectMaxX(r)),GetRandomReal(GetRectMinY(r),GetRectMaxY(r)))
 set bj_lastCreatedUnit=CreateUnitAtLoc(Player($A),Rb,p,bj_UNIT_FACING)
 call SetUnitUserData(bj_lastCreatedUnit,1)
+call Reforged_OnCreepSpawn(bj_lastCreatedUnit,1)
 call GroupAddUnit(ax,bj_lastCreatedUnit)
 call GroupAddUnit(Cx[1],bj_lastCreatedUnit)
 call GroupAddUnit(Ri[1],bj_lastCreatedUnit)
@@ -1532,6 +1653,7 @@ set r=Wi
 set p=Location(GetRandomReal(GetRectMinX(r),GetRectMaxX(r)),GetRandomReal(GetRectMinY(r),GetRectMaxY(r)))
 set bj_lastCreatedUnit=CreateUnitAtLoc(Player($A),Rb,p,bj_UNIT_FACING)
 call SetUnitUserData(bj_lastCreatedUnit,2)
+call Reforged_OnCreepSpawn(bj_lastCreatedUnit,2)
 call GroupAddUnit(ax,bj_lastCreatedUnit)
 call GroupAddUnit(Cx[1],bj_lastCreatedUnit)
 call GroupAddUnit(Ri[2],bj_lastCreatedUnit)
@@ -1542,6 +1664,7 @@ set r=wi
 set p=Location(GetRandomReal(GetRectMinX(r),GetRectMaxX(r)),GetRandomReal(GetRectMinY(r),GetRectMaxY(r)))
 set bj_lastCreatedUnit=CreateUnitAtLoc(Player($A),Rb,p,bj_UNIT_FACING)
 call SetUnitUserData(bj_lastCreatedUnit,3)
+call Reforged_OnCreepSpawn(bj_lastCreatedUnit,3)
 call GroupAddUnit(ax,bj_lastCreatedUnit)
 call GroupAddUnit(Cx[1],bj_lastCreatedUnit)
 call GroupAddUnit(Ri[3],bj_lastCreatedUnit)
@@ -1552,6 +1675,7 @@ set r=Ti
 set p=Location(GetRandomReal(GetRectMinX(r),GetRectMaxX(r)),GetRandomReal(GetRectMinY(r),GetRectMaxY(r)))
 set bj_lastCreatedUnit=CreateUnitAtLoc(Player($A),Rb,p,bj_UNIT_FACING)
 call SetUnitUserData(bj_lastCreatedUnit,4)
+call Reforged_OnCreepSpawn(bj_lastCreatedUnit,4)
 call GroupAddUnit(ax,bj_lastCreatedUnit)
 call GroupAddUnit(Cx[1],bj_lastCreatedUnit)
 call GroupAddUnit(Ri[4],bj_lastCreatedUnit)
@@ -1562,6 +1686,7 @@ set r=xa
 set p=Location(GetRandomReal(GetRectMinX(r),GetRectMaxX(r)),GetRandomReal(GetRectMinY(r),GetRectMaxY(r)))
 set bj_lastCreatedUnit=CreateUnitAtLoc(Player($B),Rb,p,bj_UNIT_FACING)
 call SetUnitUserData(bj_lastCreatedUnit,5)
+call Reforged_OnCreepSpawn(bj_lastCreatedUnit,5)
 call GroupAddUnit(ax,bj_lastCreatedUnit)
 call GroupAddUnit(Cx[2],bj_lastCreatedUnit)
 call GroupAddUnit(Ri[5],bj_lastCreatedUnit)
@@ -1572,6 +1697,7 @@ set r=oa
 set p=Location(GetRandomReal(GetRectMinX(r),GetRectMaxX(r)),GetRandomReal(GetRectMinY(r),GetRectMaxY(r)))
 set bj_lastCreatedUnit=CreateUnitAtLoc(Player($B),Rb,p,bj_UNIT_FACING)
 call SetUnitUserData(bj_lastCreatedUnit,6)
+call Reforged_OnCreepSpawn(bj_lastCreatedUnit,6)
 call GroupAddUnit(ax,bj_lastCreatedUnit)
 call GroupAddUnit(Cx[2],bj_lastCreatedUnit)
 call GroupAddUnit(Ri[6],bj_lastCreatedUnit)
@@ -1582,6 +1708,7 @@ set r=ra
 set p=Location(GetRandomReal(GetRectMinX(r),GetRectMaxX(r)),GetRandomReal(GetRectMinY(r),GetRectMaxY(r)))
 set bj_lastCreatedUnit=CreateUnitAtLoc(Player($B),Rb,p,bj_UNIT_FACING)
 call SetUnitUserData(bj_lastCreatedUnit,7)
+call Reforged_OnCreepSpawn(bj_lastCreatedUnit,7)
 call GroupAddUnit(ax,bj_lastCreatedUnit)
 call GroupAddUnit(Cx[2],bj_lastCreatedUnit)
 call GroupAddUnit(Ri[7],bj_lastCreatedUnit)
@@ -1592,6 +1719,7 @@ set r=ia
 set p=Location(GetRandomReal(GetRectMinX(r),GetRectMaxX(r)),GetRandomReal(GetRectMinY(r),GetRectMaxY(r)))
 set bj_lastCreatedUnit=CreateUnitAtLoc(Player($B),Rb,p,bj_UNIT_FACING)
 call SetUnitUserData(bj_lastCreatedUnit,8)
+call Reforged_OnCreepSpawn(bj_lastCreatedUnit,8)
 call GroupAddUnit(ax,bj_lastCreatedUnit)
 call GroupAddUnit(Cx[2],bj_lastCreatedUnit)
 call GroupAddUnit(Ri[8],bj_lastCreatedUnit)
@@ -6125,6 +6253,7 @@ local integer id=GetPlayerId(p)+1
 if Reforged_IsNoSendWave(L+1) then
 // summon cost is always level*20 lumber
 call AdjustPlayerStateBJ(GetUnitLevel(u)*20,p,PLAYER_STATE_RESOURCE_LUMBER)
+call AdjustPlayerStateBJ(-GetUnitLevel(u)*20,p,PLAYER_STATE_LUMBER_GATHERED)
 call DisplayTimedTextToPlayer(p,0,0,7.,"|cffFF0000Summons can't be sent on level "+I2S(L+1)+"|r (levels 1, 10, 20, 30). Lumber refunded.")
 call RemoveUnit(u)
 set u=null
@@ -15178,6 +15307,7 @@ set TA=CreateTrigger()
 call TriggerRegisterTimerEventPeriodic(TA,1.)
 call TriggerAddCondition(TA,Condition(function By))
 call TriggerAddAction(TA,function SY)
+call Reforged_InitChallenge()
 call ConditionalTriggerExecute(eV)
 call ConditionalTriggerExecute(wR)
 endfunction
