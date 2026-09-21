@@ -72,6 +72,8 @@ SUMMONS = [
 ]
 
 BARRACKS = "h9B0"
+LOCKED_BARRACKS = "h9B1"  # h05C twin selling max-stock-0 copies (h9D0..) on no-send levels
+LOCKED_LEGENDARY = "h9B2"  # h9B0 twin selling max-stock-0 copies (h9E0..)
 
 # ---------------------------------------------------------------- Challenge (sold in each player's Town, h023)
 CHALLENGE = "h9C0"  # dummy "unit" bought from the Town; the script removes it and toggles the challenge
@@ -144,6 +146,32 @@ def main():
     func.set(BARRACKS, "Name", "Legendary Barracks")
     func.set(BARRACKS, "Art", ICON + "BTNMannoroth.blp")
     func.set(BARRACKS, "Sellunits", ",".join(s[0] for s in SUMMONS))
+    # Locked shops for no-send levels (like the map's own h05D): same buttons, but every unit has max stock 0
+    func.set(BARRACKS, "Sellunits", ",".join(s[0] for s in SUMMONS))
+    for shop, locked_shop, prefix in (("h05C", LOCKED_BARRACKS, "h9D"), (BARRACKS, LOCKED_LEGENDARY, "h9E")):
+        s0, e0 = func._section(shop)
+        sells = next(l for l in func.lines[s0:e0] if l.startswith("Sellunits=")).split("=", 1)[1].split(",")
+        locked_ids = []
+        for i, src in enumerate(sells):
+            lid = f"{prefix}{'0123456789ABCDEF'[i]}"
+            locked_ids.append(lid)
+            for s in slks.values():
+                if src in s.rows:
+                    s.clone(src, lid)
+            slks["UnitBalance.slk"].set(lid, "stockMax", 0)
+            slks["unitUI.slk"].set(lid, "name", f"reforged_{lid}")
+            func.clone(src, lid)
+            t0, t1 = func._section(src)
+            tip = next((l.split("=", 1)[1] for l in func.lines[t0:t1] if l.startswith("Tip=")), "")
+            func.set(lid, "Tip", tip.replace(" |cffFF0000(locked this level)|r", "") +
+                     " |cffFF0000(locked this level)|r")
+        for s in slks.values():
+            if shop in s.rows:
+                s.clone(shop, locked_shop)
+        slks["unitUI.slk"].set(locked_shop, "name", f"reforged_{locked_shop}")
+        func.clone(shop, locked_shop)
+        func.set(locked_shop, "Sellunits", ",".join(locked_ids))
+
     # Challenge: clone of the King HP upgrade u008 (type "undead", so the summon purchase trigger ignores it)
     for s in slks.values():
         if "u008" in s.rows:

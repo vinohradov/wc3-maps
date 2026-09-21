@@ -817,6 +817,71 @@ integer array Reforged_ChSeenWave
 integer array Reforged_HpAbil
 integer array Reforged_ChAura
 endglobals
+// Reforged: summons are blocked on these levels unless mode "sa" is on
+function Reforged_IsNoSendWave takes integer lvl returns boolean
+if Reforged_SendAlways then
+return false
+endif
+return lvl==1 or lvl==10 or lvl==20 or lvl==30
+endfunction
+// Reforged: shop versions per level.
+// Barracks: h05C (<20) / Legendary h9B0 (>=20); on no-send levels their locked twins h9B1 / h9B2 (max stock 0).
+// Advanced Barracks (Vr[1..8]): h05D (<10, already all locked) / h0AZ (10-14) / h0B0 (15+); locked -> h05D.
+function Reforged_IsBarracks takes nothing returns boolean
+local integer t=GetUnitTypeId(GetFilterUnit())
+return t=='h05C' or t=='h9B0' or t=='h9B1' or t=='h9B2'
+endfunction
+function Reforged_BarracksTarget takes nothing returns integer
+local boolean locked=Reforged_IsNoSendWave(L+1)
+if L>=20 then
+if locked then
+return 'h9B2'
+endif
+return 'h9B0'
+endif
+if locked then
+return 'h9B1'
+endif
+return 'h05C'
+endfunction
+function Reforged_AdvancedTarget takes nothing returns integer
+if Reforged_IsNoSendWave(L+1) or L<10 then
+return 'h05D'
+elseif L<15 then
+return 'h0AZ'
+endif
+return 'h0B0'
+endfunction
+function Reforged_ReplaceBarracks takes nothing returns nothing
+local integer t=Reforged_BarracksTarget()
+if GetUnitTypeId(GetEnumUnit())!=t then
+call ReplaceUnitBJ(GetEnumUnit(),t,bj_UNIT_STATE_METHOD_RELATIVE)
+endif
+endfunction
+function Reforged_UpdateShops takes nothing returns nothing
+local group g=CreateGroup()
+local integer i=1
+local integer t=Reforged_AdvancedTarget()
+call GroupEnumUnitsInRect(g,bj_mapInitialPlayableArea,Filter(function Reforged_IsBarracks))
+call ForGroup(g,function Reforged_ReplaceBarracks)
+call DestroyGroup(g)
+set g=null
+loop
+exitwhen i>8
+if Vr[i]!=null and GetUnitTypeId(Vr[i])!=t then
+call ReplaceUnitBJ(Vr[i],t,bj_UNIT_STATE_METHOD_RELATIVE)
+set Vr[i]=bj_lastReplacedUnit
+endif
+set i=i+1
+endloop
+if L>=20 and not Reforged_BarracksSwapped then
+set Reforged_BarracksSwapped=true
+call DisplayTimedTextToForce(bj_FORCE_ALL_PLAYERS,15.,"|cffFFcc00Legendary Barracks|r are open: Pit Lord, Faceless One, Anub'arak, Nether Dragon, Eredar Warlock and Mannoroth can be summoned from level 21.")
+endif
+if Reforged_IsNoSendWave(L+1) and L>0 then
+call DisplayTimedTextToForce(bj_FORCE_ALL_PLAYERS,10.,"|cffFF0000Summons are locked for level "+I2S(L+1)+".|r")
+endif
+endfunction
 function eN takes real xN returns nothing
 local real oN
 local real st=TimerGetElapsed(UA)
@@ -4835,6 +4900,7 @@ call TriggerExecute(CX)
 endif
 call DisplayTimedTextToForce(bj_FORCE_ALL_PLAYERS,15.,G[(L+1)])
 set L=(L+1)
+call Reforged_UpdateShops()
 call ExecuteFunc("Ib")
 call eN(1.)
 call TriggerExecute(hE)
@@ -6190,26 +6256,7 @@ endfunction
 function iG takes nothing returns boolean
 return(L>=$F)and(br==false)
 endfunction
-// Reforged: from level 20 the cheap Barracks (h05C) become Legendary Barracks (h9B0)
-function Reforged_IsOldBarracks takes nothing returns boolean
-return GetUnitTypeId(GetFilterUnit())=='h05C'
-endfunction
-function Reforged_ReplaceBarracks takes nothing returns nothing
-call ReplaceUnitBJ(GetEnumUnit(),'h9B0',bj_UNIT_STATE_METHOD_RELATIVE)
-endfunction
-function Reforged_SwapBarracks takes nothing returns nothing
-local group g=CreateGroup()
-set Reforged_BarracksSwapped=true
-call GroupEnumUnitsInRect(g,bj_mapInitialPlayableArea,Filter(function Reforged_IsOldBarracks))
-call ForGroup(g,function Reforged_ReplaceBarracks)
-call DestroyGroup(g)
-set g=null
-call DisplayTimedTextToForce(bj_FORCE_ALL_PLAYERS,15.,"|cffFFcc00Legendary Barracks|r are open: Pit Lord, Faceless One, Anub'arak, Nether Dragon, Eredar Warlock and Mannoroth can now be summoned.")
-endfunction
 function aG takes nothing returns nothing
-if L>=20 and not Reforged_BarracksSwapped then
-call Reforged_SwapBarracks()
-endif
 if(rG())then
 set Nr=true
 set bj_forLoopAIndex=1
@@ -6232,16 +6279,10 @@ set Vr[bj_forLoopAIndex]=bj_lastReplacedUnit
 set bj_forLoopAIndex=bj_forLoopAIndex+1
 endloop
 endif
+call Reforged_UpdateShops()
 endfunction
 function VG takes nothing returns boolean
 return((IsUnitType(GetEnteringUnit(),UNIT_TYPE_SUMMONED))and(IsUnitType(GetEnteringUnit(),UNIT_TYPE_GIANT)==false)and(IsUnitType(GetEnteringUnit(),UNIT_TYPE_UNDEAD)==false)and(GetOwningPlayer(GetEnteringUnit())!=Player(8))and(GetOwningPlayer(GetEnteringUnit())!=Player(9))and(GetOwningPlayer(GetEnteringUnit())!=Player($A))and(GetOwningPlayer(GetEnteringUnit())!=Player($B)))!=null
-endfunction
-// Reforged: summons are blocked on these levels unless mode "sa" is on
-function Reforged_IsNoSendWave takes integer lvl returns boolean
-if Reforged_SendAlways then
-return false
-endif
-return lvl==1 or lvl==10 or lvl==20 or lvl==30
 endfunction
 function Trig_Purchase_Summon_Func005C takes nothing returns boolean
 return(IsPlayerAlly(GetOwningPlayer(GetEnteringUnit()),Player(8)))
@@ -10564,6 +10605,7 @@ endif
 if(Ix=="sa")then
 set Wx=true
 set Reforged_SendAlways=true
+call Reforged_UpdateShops()
 call DisplayTimedTextToForce(bj_FORCE_ALL_PLAYERS,10.,"|cff3333AASend Always|r: summons can be sent on levels 1, 10, 20 and 30.")
 endif
 if(Es())then
@@ -15308,6 +15350,7 @@ call TriggerRegisterTimerEventPeriodic(TA,1.)
 call TriggerAddCondition(TA,Condition(function By))
 call TriggerAddAction(TA,function SY)
 call Reforged_InitChallenge()
+call Reforged_UpdateShops()
 call ConditionalTriggerExecute(eV)
 call ConditionalTriggerExecute(wR)
 endfunction
