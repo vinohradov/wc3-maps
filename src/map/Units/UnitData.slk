@@ -3213,7 +3213,7 @@ C;X12;K"_"
 C;X16;K60
 C;X19;K"structure"
 C;X20;K"PathTextures\4x4SimpleSolid.tga"
-C;X22;K15
+C;X22;K20
 C;X23;K"buffer"
 C;X24;K15
 C;X26;K1
@@ -3332,7 +3332,7 @@ C;X12;K"_"
 C;X16;K60
 C;X19;K"structure"
 C;X20;K"PathTextures\4x4SimpleSolid.tga"
-C;X22;K140
+C;X22;K145
 C;X23;K"buffer"
 C;X24;K15
 C;X26;K1
@@ -5682,7 +5682,7 @@ C;X12;K"_"
 C;X16;K60
 C;X19;K"structure"
 C;X20;K"PathTextures\4x4SimpleSolid.tga"
-C;X22;K20
+C;X22;K25
 C;X23;K"buffer"
 C;X24;K15
 C;X26;K1
@@ -5697,7 +5697,7 @@ C;X12;K"_"
 C;X16;K60
 C;X19;K"structure"
 C;X20;K"PathTextures\4x4SimpleSolid.tga"
-C;X22;K160
+C;X22;K180
 C;X23;K"buffer"
 C;X24;K15
 C;X26;K1
@@ -7245,7 +7245,7 @@ C;X12;K"_"
 C;X16;K60
 C;X19;K"structure"
 C;X20;K"PathTextures\4x4SimpleSolid.tga"
-C;X22;K20
+C;X22;K35
 C;X23;K"buffer"
 C;X24;K15
 C;X26;K1
@@ -7260,7 +7260,7 @@ C;X12;K"_"
 C;X16;K60
 C;X19;K"structure"
 C;X20;K"PathTextures\4x4SimpleSolid.tga"
-C;X22;K140
+C;X22;K155
 C;X23;K"buffer"
 C;X24;K15
 C;X26;K1
@@ -10321,7 +10321,7 @@ C;X12;K"_"
 C;X16;K60
 C;X19;K"structure"
 C;X20;K"PathTextures\4x4SimpleSolid.tga"
-C;X22;K10
+C;X22;K15
 C;X23;K"buffer"
 C;X24;K15
 C;X26;K1
@@ -10354,7 +10354,7 @@ C;X12;K"_"
 C;X16;K60
 C;X19;K"structure"
 C;X20;K"PathTextures\4x4SimpleSolid.tga"
-C;X22;K80
+C;X22;K85
 C;X23;K"buffer"
 C;X24;K15
 C;X26;K1
