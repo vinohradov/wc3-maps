@@ -391,6 +391,93 @@ return Reforged_BotTryBuild(pid,unitIdx)
 endif
 return false
 endfunction
+// ---- Insane: aura supports (HT 46-52). Built behind the melee rows: first at column -3, second at +3
+// (6 squares apart for slow auras), third in the middle. Returns true if an order was given.
+function Reforged_BotBuildAt takes integer pid,integer i,integer off returns boolean
+local player p=Player(pid)
+local real dir=1.
+local integer row=2
+local real posX=GetPlayerStartLocationX(p)+128.*I2R(off)
+local real posY
+if ModuloInteger(pid,2)==1 then
+set dir=-1.
+endif
+loop
+exitwhen row>6
+set posY=GetPlayerStartLocationY(p)+dir*(512.-128.*I2R(row))
+if Reforged_BotSpotFree(posX,posY) then
+return IssueBuildOrderById(N[pid+1],Reforged_HTI(11,i),posX,posY)
+endif
+set row=row+1
+endloop
+return false
+endfunction
+function Reforged_BotSupport takes integer pid,integer gold returns boolean
+local player p=Player(pid)
+local integer s=0
+local integer cnt=Reforged_HTI(21,6)
+local integer ups=Reforged_HTI(21,1)
+local integer unitIdx
+local integer nBase
+local integer nFinal
+local integer j
+local integer off
+local group g
+local unit u
+local unit baseUnit
+local boolean done=false
+loop
+exitwhen s>=cnt or done
+set unitIdx=Reforged_BotCoreIndex(pid,Reforged_HTI(46,s))
+if unitIdx>=0 and Bo[pid+1]>=Reforged_HTI(50,s) and (Reforged_HTI(52,s)==0 or Reforged_HTI(28,pid)*2>=Reforged_HTI(27,pid)) then
+set nBase=0
+set nFinal=0
+set baseUnit=null
+set g=CreateGroup()
+call GroupEnumUnitsOfPlayer(g,p,null)
+loop
+set u=FirstOfGroup(g)
+exitwhen u==null
+if GetWidgetLife(u)>0.405 and Reforged_HTI(51,GetUnitTypeId(u))==s+1 then
+if GetUnitTypeId(u)==Reforged_HTI(47,s) then
+set nFinal=nFinal+1
+else
+set nBase=nBase+1
+if not IsUnitInGroup(u,zx) and not IsUnitInGroup(u,Zx) then
+set baseUnit=u
+endif
+endif
+endif
+call GroupRemoveUnit(g,u)
+endloop
+call DestroyGroup(g)
+set g=null
+if nBase+nFinal<Reforged_HTI(48,s) then
+if Reforged_HTI(12,unitIdx)<=gold and GetUnitCurrentOrder(N[pid+1])==0 then
+set off=0
+if nBase+nFinal==0 then
+set off=-3
+elseif nBase+nFinal==1 then
+set off=3
+endif
+set done=Reforged_BotBuildAt(pid,unitIdx,off)
+endif
+elseif nFinal<Reforged_HTI(49,s) and baseUnit!=null then
+set j=0
+loop
+exitwhen j>=ups or done
+if Reforged_HTI(14,j)==Reforged_HTI(46,s) and Reforged_HTI(15,j)==Reforged_HTI(47,s) and Reforged_HTI(16,j)<=gold then
+set done=IssueImmediateOrderById(baseUnit,Reforged_HTI(15,j))
+endif
+set j=j+1
+endloop
+endif
+set baseUnit=null
+endif
+set s=s+1
+endloop
+return done
+endfunction
 // ---- income: wisps (max 9) and Lumberjack research R003, up to the given caps
 function Reforged_BotIncome takes integer pid,integer gold,integer maxWisps,integer maxResearch returns boolean
 local player p=Player(pid)
@@ -568,6 +655,9 @@ endif
 call Reforged_BotArmy(pid,gold,true)
 else
 // Insane: army value just above the (leak-adaptive) target, everything else into income
+if Reforged_BotSupport(pid,gold) then
+return
+endif
 if Bo[pid+1]>=Reforged_BotTarget(pid) then
 if Reforged_BotIncome(pid,gold,9,8) then
 return

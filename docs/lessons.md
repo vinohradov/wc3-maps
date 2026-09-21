@@ -45,3 +45,14 @@ Crash reports: elevated war3 -> `C:\Program Files\Warcraft III\Errors`; normal w
 - The original's debug system (-debug/-gold/-level...) is stripped: triggers HI/CI are declared but never
   created. Our replacement lives in `src/reforged/debug.j` (works only in test mode `Lx` = one human; the map's
   anti-cheat conditions are gated by `Lx==false`, so cheats can set resources directly).
+
+## Bot AI knowledge (from the map owner, 2026-09-21) - encoded in tools/gen_bot.py (CORES, SUPPORTS, targets)
+- Level 1 needs ~400 value: 8 Ogres / 2 Elite Archers / 3 Veterans / 2 Frenzy Ghouls / 2 Grizzlies / 4-5 Raiders /
+  1 Spawn of Dragon (2 Dragon Aspects by level 5). Counts grow ~x1.6 (L2), ~x2.4 (L3). Mostly t1-t2 units, upgraded.
+- Economy: L1 all-in defense; income 9 wisps / research 4 by level 7 (slow down on hard levels 5 and 7), then 9/7.
+- Auras only once value is good: slow aura (Polar Bear) x2 placed 6 columns apart + ranged; healing aura (Witch
+  Doctor, no stack) + cheap melee spam; Captain/Admiral stacks (build 2, upgrade 1); Helicopter no stack; Troll
+  Champion attack speed late. Build versions carry placeholder abilities - real ones are on fighter copies (xv[]).
+- Sends should counter the enemy build (e.g. Hermit/magic vs heavy armor), not cheap trash.
+- TODO from owner: builder swapping (-cb mode) for bots; units still unidentified: "Sven" (t3 90g),
+  murloc->furbolg lifesteal line, "Nessaj" (t6 splash).

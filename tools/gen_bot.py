@@ -143,6 +143,17 @@ for ci, (base, chain, first) in enumerate(CORES):
     for u in [base] + chain:
         lines.append(f"call SaveInteger(Reforged_HT,45,'{u}',{ci + 1})")
 lines.append(f"call SaveInteger(Reforged_HT,21,5,{len(CORES)})")
+# ---- Insane: aura supports (owner's rules). (base, final, how many to build, how many of them to upgrade,
+# army value needed before buying, ranged_only). Slow auras: 2, placed 6 columns apart. Commander aura
+# stacks: build 2, upgrade 1. Healing / Telescope / Adrenaline don't stack: 1 each, upgraded.
+SUPPORTS = [("h0BJ", "h0BK", 2, 2, 1200, 0), ("h0C4", "h0C2", 1, 1, 1500, 0), ("h00P", "h00Z", 2, 1, 2500, 0),
+            ("h0AH", "h0AJ", 1, 1, 2500, 1), ("h016", "h017", 1, 1, 4000, 0)]
+for si, (base, final, count, ups, minval, ranged_only) in enumerate(SUPPORTS):
+    for key, val in ((46, f"'{base}'"), (47, f"'{final}'"), (48, count), (49, ups), (50, minval), (52, ranged_only)):
+        lines.append(f"call SaveInteger(Reforged_HT,{key},{si},{val})")
+    lines.append(f"call SaveInteger(Reforged_HT,51,'{base}',{si + 1})")
+    lines.append(f"call SaveInteger(Reforged_HT,51,'{final}',{si + 1})")
+lines.append(f"call SaveInteger(Reforged_HT,21,6,{len(SUPPORTS)})")
 # value target: 400 at level 1 (owner's data), growing with wave threat^0.8 (fits his level 2-3 counts);
 # boss levels 10/20/30 are arena fights, so just +30% over the previous level. Bots adapt it to their leaks.
 counts = [int(x) for x in re.search(r'set Jv=",([\d,]+)', script).group(1).split(",")[:30]]
