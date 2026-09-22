@@ -530,7 +530,9 @@ local integer wisps=Qx[pid+1]
 local integer res=GetPlayerTechCountSimple('R003',p)
 local boolean done=false
 if town!=null then
-if wisps<maxWisps and gold>=50 and (wisps<5 or wisps-5<=res or res>=maxResearch) then
+// simulated optimum: wisps to 7, Lumberjack 1, wisps to 9, then research (a wisp is +2/trip for 50 gold
+// and no lumber; research is +1 per wisp for gold AND lumber, so it only pays with >=7 wisps)
+if wisps<maxWisps and gold>=50 and (wisps<7 or res>=1 or res>=maxResearch) then
 set done=IssueImmediateOrderById(town,'e003')
 endif
 if not done and res<maxResearch then
