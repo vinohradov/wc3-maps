@@ -56,9 +56,9 @@ Crash reports: elevated war3 -> `C:\Program Files\Warcraft III\Errors`; normal w
 - Sends should counter the enemy build (e.g. Hermit/magic vs heavy armor), not cheap trash.
 - TODO from owner: builder swapping (-cb mode) for bots; units still unidentified: "Sven" (t3 90g),
   murloc->furbolg lifesteal line, "Nessaj" (t6 splash).
-- Income model (2026-09-22 sim): wisp = +2 lumber/trip for 50 gold, no lumber; Lumberjack n = +1 per wisp for
-  60+20n gold AND lumber, 22+2n s; Town queue is serial (wisp 30 s). Optimal: wisps to 7 -> research 1 -> wisps
-  to 9 -> research. Owner's 3/1 5/2 7/3 is within 1-3% at 100-150 gold/round, ~10-15% worse when gold is plentiful.
-  Early research is bad (lumber not sent, queue blocked). Bots use the optimal order.
+- Income model (2026-09-22 sim): wisp = +2 lumber/trip for 50 gold, no lumber; Lumberjack level n = +1 per wisp for
+  60+20(n-1) gold AND lumber (L1 = 60/60), 22+2n s; Town queue is serial (wisp 30 s). Optimal: wisps to 5 ->
+  Lumberjack 1 -> wisps to 9 -> research 2..8. All sane orders are within ~1% by round 8; research before ~5 wisps
+  or level 3+ before 9 wisps is the only real mistake. Bots use this order.
 - NEVER run wc3batch.ps1 while the user may be playing: it used to kill war3.exe first (ruined a live game on
   2026-09-22). It now aborts if war3 is running. Ask before launching it; skip it for trivial script edits.

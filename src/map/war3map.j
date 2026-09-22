@@ -3886,9 +3886,9 @@ local integer wisps=Qx[pid+1]
 local integer res=GetPlayerTechCountSimple('R003',p)
 local boolean done=false
 if town!=null then
-// simulated optimum: wisps to 7, Lumberjack 1, wisps to 9, then research (a wisp is +2/trip for 50 gold
-// and no lumber; research is +1 per wisp for gold AND lumber, so it only pays with >=7 wisps)
-if wisps<maxWisps and gold>=50 and (wisps<7 or res>=1 or res>=maxResearch) then
+// simulated optimum: wisps to 5, Lumberjack 1 (60/60), wisps to 9, then research 2..8 (level n costs
+// 60+20(n-1) gold AND lumber; a wisp is +2/trip for 50 gold, research +1 per wisp)
+if wisps<maxWisps and gold>=50 and (wisps<5 or res>=1 or res>=maxResearch) then
 set done=IssueImmediateOrderById(town,'e003')
 endif
 if not done and res<maxResearch then
@@ -4012,7 +4012,7 @@ if Vv then
 if d!=0 and not Reforged_IsNoSendWave(next) then
 set res=GetPlayerTechCountSimple('R003',p)
 if res<7 then
-call Reforged_BotSend(pid,60+20*(res+1))
+call Reforged_BotSend(pid,60+20*res)
 else
 call Reforged_BotSend(pid,0)
 endif
