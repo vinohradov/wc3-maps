@@ -5,8 +5,13 @@ $war3 = "C:\Program Files\Warcraft III\war3.exe"
 # elevated war3 writes to the real folder, normal war3 to VirtualStore
 $errors = @("C:\Program Files\Warcraft III\Errors", "C:\Users\vinog\AppData\Local\VirtualStore\Program Files\Warcraft III\Errors")
 "" | Set-Content $Out
+# NEVER kill a game the user is playing: refuse to run if Warcraft is already open.
+if (Get-Process war3 -ErrorAction SilentlyContinue) {
+    Add-Content $Out "ABORTED`tWarcraft is already running (user may be playing) - not touching it"
+    Add-Content $Out "DONE"
+    exit 0
+}
 Start-Transcript -Path "$Out.log" -Force | Out-Null
-Get-Process war3 -ErrorAction SilentlyContinue | Stop-Process -Force
 foreach ($m in Get-ChildItem $Folder -Filter "zz_*.w3x" | Sort-Object Name) {
     $start = Get-Date
     $p = Start-Process -FilePath $war3 -ArgumentList @("-window", "-loadfile", "`"$($m.FullName)`"") -PassThru

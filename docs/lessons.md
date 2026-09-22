@@ -60,3 +60,5 @@ Crash reports: elevated war3 -> `C:\Program Files\Warcraft III\Errors`; normal w
   60+20n gold AND lumber, 22+2n s; Town queue is serial (wisp 30 s). Optimal: wisps to 7 -> research 1 -> wisps
   to 9 -> research. Owner's 3/1 5/2 7/3 is within 1-3% at 100-150 gold/round, ~10-15% worse when gold is plentiful.
   Early research is bad (lumber not sent, queue blocked). Bots use the optimal order.
+- NEVER run wc3batch.ps1 while the user may be playing: it used to kill war3.exe first (ruined a live game on
+  2026-09-22). It now aborts if war3 is running. Ask before launching it; skip it for trivial script edits.
