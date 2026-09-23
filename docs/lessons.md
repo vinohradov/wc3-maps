@@ -62,3 +62,7 @@ Crash reports: elevated war3 -> `C:\Program Files\Warcraft III\Errors`; normal w
   or level 3+ before 9 wisps is the only real mistake. Bots use this order.
 - NEVER run wc3batch.ps1 while the user may be playing: it used to kill war3.exe first (ruined a live game on
   2026-09-22). It now aborts if war3 is running. Ask before launching it; skip it for trivial script edits.
+- Cyrillic chat on the English 1.26 client: registry HKCU\Software\Blizzard Entertainment\Warcraft III
+  "Allow Local Files"=1 + Cyrillic TTFs in `Warcraft III\Fonts\` named FRIZQT__.TTF / ARIALN.TTF / MORPHEUS.TTF
+  (copies of Windows Arial, done 2026-09-23). Revert = delete the Fonts folder. Untested whether the iCCup
+  launcher's anti-cheat objects to local files.
